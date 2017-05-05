@@ -29,6 +29,8 @@ public class SphereUpdater : MonoBehaviour {
 		m_csMandelbrot.SetFloat ("fResolution", 0.005f);
 		m_csMandelbrot.SetFloat ("fYMin", -2.0f);
 		m_csMandelbrot.SetFloat ("fXMin", -2.0f);
+		m_csMandelbrot.SetInt ("width", width);
+		m_csMandelbrot.SetInt ("height", height);
 	}
 	
 	// Update is called once per frame
