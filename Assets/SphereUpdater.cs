@@ -18,17 +18,17 @@ public class SphereUpdater : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		width = 1024;
-		height = 1024;
+		width = 2048;
+		height = 2048;
 		m_tex = new RenderTexture (width, height, 0);
 		m_tex.format = RenderTextureFormat.ARGBFloat;
 		m_tex.enableRandomWrite = true;
 		m_tex.Create ();
 
-		m_csMandelbrot.SetInt ("nNumIterations", 20);
-		m_csMandelbrot.SetFloat ("fResolution", 0.005f);
-		m_csMandelbrot.SetFloat ("fYMin", -2.0f);
-		m_csMandelbrot.SetFloat ("fXMin", -2.0f);
+		m_csMandelbrot.SetInt ("nNumIterations", 60);
+		m_csMandelbrot.SetFloat ("R", 0.2f);
+		m_csMandelbrot.SetFloat ("xp", -1);
+		m_csMandelbrot.SetFloat ("yp", 0);
 		m_csMandelbrot.SetInt ("width", width);
 		m_csMandelbrot.SetInt ("height", height);
 	}
