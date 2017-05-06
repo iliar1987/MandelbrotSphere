@@ -48,7 +48,9 @@
   <ItemGroup>
      <Compile Include="Assets\FractalZoomer.cs" />
      <Compile Include="Assets\cameraMouse2.cs" />
-     <None Include="Assets\Mandelbrot_sphere.compute" />
+     <Compile Include="Assets\vector3d\Mathd.cs" />
+     <Compile Include="Assets\vector3d\Vector2d.cs" />
+     <Compile Include="Assets\vector3d\Vector3d.cs" />
      <None Include="Assets\mandelbrot1.shader" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>

@@ -1,50 +1,85 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class FractalZoomer : MonoBehaviour {
 
 	Vector3 m_vecPos;
+	Quaternion m_initialRotation;
 	// Use this for initialization
 	void Start () {
-		m_vecPos = new Vector3(0,0,0);
-
+		m_vecPos = new Vector3(0,0,1);
+		m_initialRotation = gameObject.transform.rotation;
+		//TransformSphere ();
 	}
-	const float PI = 3.14159265f;
+	const double PI = 3.14159265358979323846264338327950288419716939937510;
 
-	public float m_fSpeed = 0.001f;
-	public float m_fRCoeff = 0.001f;
-	private Vector2 m_fPole = new Vector2(0,0);
-	// Update is called once per frame
+	public float m_fSpeed = 1.0f;
+	public double m_fRCoeff = 0.001;
+	private Vector2d m_pole = new Vector2d(0,0);
 
-	float CalcR(Vector3 vecPos)
+	double m_R
 	{
-		return Mathf.Exp (- vecPos.magnitude * m_fRCoeff);
+		get { return Math.Exp (- m_vecPos.magnitude * m_fRCoeff);}
 	}
 
+	void TransformSphere()
+	{
+		Vector3 newForward = m_vecPos.normalized;
+		Vector3 newUp = new Vector3 (0, 1, 0);
+		newUp = (newUp - (Vector3.Dot (newUp, newForward)) * newForward).normalized;
+		Vector3 newRight = Vector3.Cross (newUp, newForward);
+
+		Matrix4x4 mat = new Matrix4x4();
+		mat.SetColumn (0, newRight);
+		mat.SetColumn (1, newUp);
+		mat.SetColumn (2, newForward);
+		Quaternion rotation = Quaternion.LookRotation(
+			mat.GetColumn(2),
+			mat.GetColumn(1)
+		);
+
+		gameObject.transform.rotation = rotation*m_initialRotation;
+	}
+
+	Vector2d SphereProjection(double theta,double phi,double R,Vector2d pole)
+	{
+		return new Vector2d(Math.Cos(phi),Math.Sin(phi))* (Math.Tan(theta/2.0) * 2.0 * R) + pole;
+	}
+
+	Vector2d GetXYRayCast()
+	{
+		Transform tCam = Camera.main.transform;
+		RaycastHit hit;
+		bool bRes = Physics.Raycast (tCam.position, tCam.forward, out hit);
+		Assert.IsTrue(bRes);
+		Vector2 UV = hit.textureCoord;
+		double theta = UV.y * PI;
+		double phi = UV.x * PI * 2;
+		return SphereProjection (theta, phi, m_R, m_pole);
+	}
+		
 	void Update () {
 		
 		float fForward = Input.GetAxis("Vertical");
 
-		if (fForward > 0) {
+		if (fForward != 0) {
 			Transform tCam = Camera.main.transform;
 
-			RaycastHit hit;
-			if (Physics.Raycast (tCam.position, tCam.forward, out hit)) {
-				Vector2 UV = hit.textureCoord;
-				float theta = UV.y * PI;
-				float phi = UV.x * PI * 2;
-				float R_old = CalcR (m_vecPos);
+			Vector2d xy_old = GetXYRayCast ();
 
-				m_vecPos += tCam.forward * m_fSpeed;
-				float R_new = CalcR (m_vecPos);
-				m_fPole += 2 * Mathf.Tan ((PI - theta) / 2) 
-					* (new Vector2 (Mathf.Cos (phi), Mathf.Sin (phi)))
-					* (R_old-R_new);
-				gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_xp", m_fPole.x);
-				gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_yp", m_fPole.y);
-				gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_R", R_new);
-			}
+			m_vecPos += tCam.forward * m_fSpeed * fForward;
+
+			TransformSphere ();
+
+			Vector2d xy_new = GetXYRayCast ();
+
+			m_pole -= xy_new - xy_old;
+			gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_xp", (float)m_pole.x);
+			gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_yp", (float)m_pole.y);
+			gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_R", (float)m_R);
 		}
 	}
 }

@@ -17,6 +17,7 @@
 		{
 			cull back
 			CGPROGRAM
+			#pragma target 5.0
 			#pragma vertex vert
 			#pragma fragment frag
 			// make fog work
@@ -49,18 +50,18 @@
 				return o;
 			}
 
-			static const float PI = 3.14159265f;
+			static const double PI = 3.14159265358979323846264338327950288419716939937510;
 			int _NIterations;
 			float _xp;
 			float _yp;
 			float _R;
 
-			float2 sqrComplex(float2 z)
+			double2 sqrComplex(double2 z)
 			{
 				return float2(z.x*z.x - z.y*z.y , 2*z.x * z.y);
 			}
 
-			float absSqrComplex(float2 z)
+			double absSqrComplex(double2 z)
 			{
 				return z.x*z.x + z.y*z.y;
 			}
@@ -85,16 +86,14 @@
 				return HUEtoRGB(h);
 			}
 
-			float2 SphereProjection(float theta,float phi,float R,float xp,float yp)
+			double2 SphereProjection(double theta,double phi,double R,double xp,double yp)
 			{
-				return tan(theta/2.0f) * 2.0f * R * float2(cos(phi),sin(phi)) + float2(xp,yp);
+				return tan(theta/2.0f) * 2.0f * R * double2(cos(phi),sin(phi)) + double2(xp,yp);
 			}
 
-			int Mandelbrot(float theta,float phi)
+			int Mandelbrot(double2 c)
 			{
-				float2 c = SphereProjection(theta,phi,_R,_xp,_yp);
-
-				float2 z = float2(0,0);
+				double2 z = double2(0,0);
 				for ( int i=0 ; i<_NIterations ; ++i)
 				{
 					z = sqrComplex(z) + c;
@@ -108,9 +107,11 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				float theta = (i.uv.y) * PI;
-				float phi = i.uv.x * PI*2;
-				int nIter = Mandelbrot(theta,phi);
+				double theta = (i.uv.y) * PI;
+				double phi = i.uv.x * PI*2;
+				double2 c = SphereProjection(theta,phi,_R,_xp,_yp);
+
+				int nIter = Mandelbrot(c);
 
 				fixed4 col;
 				if ( nIter == -1)
