@@ -9,16 +9,13 @@ public class FractalZoomer : MonoBehaviour {
 	Vector3 m_vecPos;
 	Quaternion m_initialRotation;
 	// Use this for initialization
-	void Start () {
-		m_vecPos = new Vector3(0,0,1);
-		m_initialRotation = gameObject.transform.rotation;
-		//TransformSphere ();
-	}
+
 	const double PI = 3.14159265358979323846264338327950288419716939937510;
 
 	public float m_fSpeed = 1.0f;
 	public double m_fRCoeff = 0.001;
 	private Vector2d m_pole = new Vector2d(0,0);
+	float m_nIterations = 50;
 
 	double m_R
 	{
@@ -60,6 +57,18 @@ public class FractalZoomer : MonoBehaviour {
 		double phi = UV.x * PI * 2;
 		return SphereProjection (theta, phi, m_R, m_pole);
 	}
+
+	void SetNumIterations()
+	{
+		gameObject.GetComponent<MeshRenderer> ().material.SetInt ("_NIterations", (int)m_nIterations);
+	}
+
+	void Start () {
+		m_vecPos = new Vector3(0,0,1);
+		m_initialRotation = gameObject.transform.rotation;
+		SetNumIterations ();
+		//TransformSphere ();
+	}
 		
 	void Update () {
 		
@@ -80,6 +89,14 @@ public class FractalZoomer : MonoBehaviour {
 			gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_xp", (float)m_pole.x);
 			gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_yp", (float)m_pole.y);
 			gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_R", (float)m_R);
+		}
+
+		float fTrigger = Input.GetAxis ("Trigger");
+		if (fTrigger != 0) {
+			m_nIterations += fTrigger;
+			if (m_nIterations < 2)
+				m_nIterations = 2;
+			SetNumIterations ();
 		}
 	}
 }

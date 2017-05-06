@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\FractalZoomer.cs" />
+     <Compile Include="Assets\cameraJoystick.cs" />
      <Compile Include="Assets\cameraMouse2.cs" />
      <Compile Include="Assets\vector3d\Mathd.cs" />
      <Compile Include="Assets\vector3d\Vector2d.cs" />

@@ -5,6 +5,7 @@
 		_R ("Projection Sphere Radius", Float) = 1.0
 		_xp ("South Pole Displacement X", Float)=0.0
 		_yp ("South Pole Displacement Y", Float)=0.0
+		//_xp_bin ("South Pole Displacement X as pair of uints", Int)=0
 		_NIterations ("Number of mandelbrot iterations", Int)=50
 
 	}
@@ -88,7 +89,7 @@
 
 			double2 SphereProjection(double theta,double phi,double R,double xp,double yp)
 			{
-				return tan(theta/2.0f) * 2.0f * R * double2(cos(phi),sin(phi)) + double2(xp,yp);
+				return tan(theta/2.0) * 2.0 * R * double2(cos(phi),sin(phi)) + double2(xp,yp);
 			}
 
 			int Mandelbrot(double2 c)
