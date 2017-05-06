@@ -16,10 +16,13 @@ public class FractalZoomer : MonoBehaviour {
 	public double m_fRCoeff = 0.001;
 	private Vector2d m_pole = new Vector2d(0,0);
 	float m_nIterations = 50;
+	public float m_fNIterationsGrowSpeed=0.3f;
+	public Vector3 m_vecInitialPos = new Vector3 (0, 0, 10);
+	public float m_fR0 = 2;
 
 	double m_R
 	{
-		get { return Math.Exp (- m_vecPos.magnitude * m_fRCoeff);}
+		get { return Math.Exp (m_fR0 - m_vecPos.magnitude * m_fRCoeff);}
 	}
 
 	void TransformSphere()
@@ -46,11 +49,10 @@ public class FractalZoomer : MonoBehaviour {
 		return new Vector2d(Math.Cos(phi),Math.Sin(phi))* (Math.Tan(theta/2.0) * 2.0 * R) + pole;
 	}
 
-	Vector2d GetXYRayCast()
+	Vector2d GetXYRayCast(Vector3 Origin,Vector3 vDirection)
 	{
-		Transform tCam = Camera.main.transform;
 		RaycastHit hit;
-		bool bRes = Physics.Raycast (tCam.position, tCam.forward, out hit);
+		bool bRes = Physics.Raycast (Origin, vDirection, out hit);
 		Assert.IsTrue(bRes);
 		Vector2 UV = hit.textureCoord;
 		double theta = UV.y * PI;
@@ -64,36 +66,55 @@ public class FractalZoomer : MonoBehaviour {
 	}
 
 	void Start () {
-		m_vecPos = new Vector3(0,0,1);
+		m_vecPos = m_vecInitialPos;
 		m_initialRotation = gameObject.transform.rotation;
+		UpdateShaderSphereProjectionParams ();
 		SetNumIterations ();
 		//TransformSphere ();
+	}
+
+	void UpdateShaderSphereProjectionParams ()
+	{
+		gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_xp", (float)m_pole.x);
+		gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_yp", (float)m_pole.y);
+		gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_R", (float)m_R);
+	}
+
+	void ModifyVecPos(Vector3 vDelta,Vector3 vOrigin,Vector3 vRayKeepConst)
+	{
+
+		Vector2d xy_old = GetXYRayCast (vOrigin,vRayKeepConst);
+
+		m_vecPos += vDelta;
+
+		TransformSphere ();
+
+		Vector2d xy_new = GetXYRayCast (vOrigin,vRayKeepConst);
+
+		m_pole -= xy_new - xy_old;
+
+		UpdateShaderSphereProjectionParams ();
 	}
 		
 	void Update () {
 		
 		float fForward = Input.GetAxis("Vertical");
+		Transform tCam = Camera.main.transform;
 
 		if (fForward != 0) {
-			Transform tCam = Camera.main.transform;
+			ModifyVecPos (tCam.forward * m_fSpeed * fForward,tCam.position,tCam.forward);
+		}
 
-			Vector2d xy_old = GetXYRayCast ();
-
-			m_vecPos += tCam.forward * m_fSpeed * fForward;
-
-			TransformSphere ();
-
-			Vector2d xy_new = GetXYRayCast ();
-
-			m_pole -= xy_new - xy_old;
-			gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_xp", (float)m_pole.x);
-			gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_yp", (float)m_pole.y);
-			gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_R", (float)m_R);
+		bool bRewind = Input.GetButton ("Rewind");
+		if (bRewind )
+		{
+			if ( m_vecPos.magnitude > m_vecInitialPos.magnitude )
+				ModifyVecPos (-m_vecPos.normalized * m_fSpeed,tCam.position,m_vecPos.normalized);
 		}
 
 		float fTrigger = Input.GetAxis ("Trigger");
 		if (fTrigger != 0) {
-			m_nIterations += fTrigger;
+			m_nIterations += fTrigger*m_fNIterationsGrowSpeed;
 			if (m_nIterations < 2)
 				m_nIterations = 2;
 			SetNumIterations ();
