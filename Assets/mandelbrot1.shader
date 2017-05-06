@@ -51,18 +51,18 @@
 				return o;
 			}
 
-			static const double PI = 3.14159265358979323846264338327950288419716939937510;
+			static const float PI = 3.14159265358979323846264338327950288419716939937510;
 			int _NIterations;
 			float _xp;
 			float _yp;
 			float _R;
 
-			double2 sqrComplex(double2 z)
+			float2 sqrComplex(float2 z)
 			{
 				return float2(z.x*z.x - z.y*z.y , 2*z.x * z.y);
 			}
 
-			double absSqrComplex(double2 z)
+			float absSqrComplex(float2 z)
 			{
 				return z.x*z.x + z.y*z.y;
 			}
@@ -87,14 +87,14 @@
 				return HUEtoRGB(h);
 			}
 
-			double2 SphereProjection(double theta,double phi,double R,double xp,double yp)
+			float2 SphereProjection(float theta,float phi,float R,float xp,float yp)
 			{
-				return tan(theta/2.0) * 2.0 * R * double2(cos(phi),sin(phi)) + double2(xp,yp);
+				return tan(theta/2.0) * 2.0 * R * float2(cos(phi),sin(phi)) + float2(xp,yp);
 			}
 
-			int Mandelbrot(double2 c)
+			int Mandelbrot(float2 c)
 			{
-				double2 z = double2(0,0);
+				float2 z = float2(0,0);
 				for ( int i=0 ; i<_NIterations ; ++i)
 				{
 					z = sqrComplex(z) + c;
@@ -108,9 +108,9 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				double theta = (i.uv.y) * PI;
-				double phi = i.uv.x * PI*2;
-				double2 c = SphereProjection(theta,phi,_R,_xp,_yp);
+				float theta = (i.uv.y) * PI;
+				float phi = i.uv.x * PI*2;
+				float2 c = SphereProjection(theta,phi,_R,_xp,_yp);
 
 				int nIter = Mandelbrot(c);
 
