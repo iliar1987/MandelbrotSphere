@@ -47,10 +47,14 @@ void Shutdown()
 	g_pSimpleFillTexture = nullptr;
 }
 
-void* __stdcall FillTexture()
+void __stdcall FillTexture()
 {
 	g_pSimpleFillTexture->UpdateBuffer();
 	g_pTextureCurrent->UpdateFromDeviceBuffer(g_pSimpleFillTexture->GetCurrentBuffer(), g_pSimpleFillTexture->GetPitch());
+}
+
+void* __stdcall GetTexture(int texNum)
+{
 	return g_pTextureCurrent->GetTexture2D();
 }
 

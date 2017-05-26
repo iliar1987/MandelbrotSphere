@@ -79,6 +79,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);C:\Program Files\Unity\Editor\Data\PluginAPI;C:\source\cuda_samples\common\inc;$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/D LIBRARY_EXPORTS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -96,6 +97,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;LIBRARY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);C:\Program Files\Unity\Editor\Data\PluginAPI;C:\source\cuda_samples\common\inc;$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/D LIBRARY_EXPORTS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -118,6 +120,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);C:\Program Files\Unity\Editor\Data\PluginAPI;C:\source\cuda_samples\common\inc;$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/D LIBRARY_EXPORTS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -139,6 +142,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);C:\Program Files\Unity\Editor\Data\PluginAPI;C:\source\cuda_samples\common\inc;$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/D LIBRARY_EXPORTS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -163,6 +167,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="kernel.h" />
     <ClInclude Include="ExportFunctions.h" />
     <ClInclude Include="TextureInfo.h" />
+    <ClInclude Include="UnityCommunicate.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureInfo.cpp" />
