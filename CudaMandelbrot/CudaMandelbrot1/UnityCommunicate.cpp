@@ -9,11 +9,11 @@
 #include "IUnityGraphics.h"
 #include "IUnityGraphicsD3D11.h"
 
-#include "ExportFunctions.h"
-
 #include "TextureInfo.h"
 
 #include "kernel.h"
+
+#include "UnityCommunicate.h"
 
 /* passing textures to/from unity:
 On Direct3D - like devices this returns a pointer to the base texture type(IDirect3DBaseTexture9 on D3D9, ID3D11Resource on D3D11, ID3D12Resource on D3D12).On OpenGL - like devices the GL texture "name" is returned; cast the pointer to integer type to get it.On Metal, the id<MTLTexture> pointer is returned.On platforms that do not support native code plugins, this function always returns NULL.
@@ -47,13 +47,13 @@ void Shutdown()
 	g_pSimpleFillTexture = nullptr;
 }
 
-void __stdcall FillTexture()
+LIBRARY_API void __stdcall FillTexture()
 {
 	g_pSimpleFillTexture->UpdateBuffer();
 	g_pTextureCurrent->UpdateFromDeviceBuffer(g_pSimpleFillTexture->GetCurrentBuffer(), g_pSimpleFillTexture->GetPitch());
 }
 
-void* __stdcall GetTexture(int texNum)
+LIBRARY_API void* __stdcall GetTexture()
 {
 	return g_pTextureCurrent->GetTexture2D();
 }
