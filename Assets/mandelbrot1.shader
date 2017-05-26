@@ -26,58 +26,6 @@
 			
 			#include "UnityCG.cginc"
 
-			// Increment U
-			uint4 inc128(uint4 u)
-			{
-			  // Compute all carries to add
-			  bool4 b = (u == (uint4)(0xFFFFFFFF));
-			  int4 h = (uint4)(b) * 0xFFFFFFFF;
-			  uint4 c = (uint4)(h.y&h.z&h.w&1,h.z&h.w&1,h.w&1,1);
-			  return u+c;
-			}
-
-			// Return -U
-			uint4 neg128(uint4 u)
-			{
-			  return inc128(u ^ (uint4)(0xFFFFFFFF)); // (1 + ~U) is two's complement
-			}
-
-			// Return U+V
-			uint4 add128(uint4 u,uint4 v)
-			{
-			  uint4 s = u+v;
-			  uint4 h = ((uint4)(s < u)) * 0xFFFFFFFF;
-			  uint4 c1 = h.yzwx & uint4(1,1,1,0); // Carry from U+V
-			  h = (uint4)(s == (uint4)(0xFFFFFFFF));
-			  h *= 0xFFFFFFFF;
-			  uint4 c2 = (uint4)((c1.y|(c1.z&h.z))&h.y,c1.z&h.z,0,0); // Propagated carry
-			  return s+c1+c2;
-			}
-
-			// Return U<<1
-			uint4 shl128(uint4 u)
-			{
-			  uint4 h = (u>>(uint4)(31)) & uint4(0,1,1,1); // Bits to move up
-			  return (u<<(uint4)(1)) | h.yzwx;
-			}
-
-			// Return U>>1
-			uint4 shr128(uint4 u)
-			{
-			  uint4 h = (u<<(uint4)(31)) & uint4(0x80000000,0x80000000,0x80000000,0); // Bits to move down
-			  return (u>>(uint4)(1)) | h.wxyz;
-			}
-
-			uint mulhilow(uint x,uint y,out uint lo,out uint hi)
-			{
-
-			}
-
-			uint4 mul128(uint4 u,uint k)
-			{
-
-			}
-
 			struct appdata
 			{
 				float4 vertex : POSITION;
