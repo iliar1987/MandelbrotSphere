@@ -161,11 +161,10 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kernel.h" />
-    <ClInclude Include="main.h" />
+    <ClInclude Include="ExportFunctions.h" />
     <ClInclude Include="TextureInfo.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="TextureInfo.cpp" />
     <ClCompile Include="UnityCommunicate.cpp" />
   </ItemGroup>

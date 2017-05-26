@@ -26,6 +26,9 @@ CTextureInfo::CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice)
 	if (FAILED(pDevice->CreateShaderResourceView(m_pTex2d, NULL, &m_pSRView)))
 		throw ErrTextureCreate(__FUNCTION__ "Error in CreateShaderResourceView");
 
+	cudaGraphicsD3D11RegisterResource(&m_cudaResource, m_pTex2d, cudaGraphicsRegisterFlagsNone);
+	getLastCudaError("cudaGraphicsD3D11RegisterResource (g_texture_2d) failed");
+
 }
 
 CTextureInfo::~CTextureInfo()
@@ -40,4 +43,24 @@ CTextureInfo::~CTextureInfo()
 CTextureInfo* CTextureInfo::CreateAnother()
 {
 	return new CTextureInfo(m_width, m_height,m_pDevice);
+}
+
+void CTextureInfo::UpdateFromDeviceBuffer(float4* d_buffer,size_t pitch)
+{
+	cudaError_t status;
+
+	cudaArray *cuArray;
+
+	status = cudaGraphicsSubResourceGetMappedArray(&cuArray, m_cudaResource, 0, 0);
+	if (status != cudaSuccess)
+	{
+		throw(ErrTextureUpdate("Error in get mapped array"));
+	}
+
+	status = cudaMemcpy2DToArray(cuArray, 0, 0, (void*)d_buffer, pitch, m_width, m_height, cudaMemcpyDeviceToDevice);
+	if (status != cudaSuccess)
+	{
+		throw(ErrTextureUpdate("Error in Memcpy2d"));
+	}
+
 }

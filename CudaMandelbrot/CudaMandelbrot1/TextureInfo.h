@@ -7,11 +7,19 @@ struct ID3D11ShaderResourceView;
 struct ID3D11Texture2D;
 struct cudaGraphicsResource;
 struct ID3D11Device;
+struct float4;
 
 class ErrTextureCreate : public std::runtime_error
 {
 public:
 	ErrTextureCreate(const char* s)
+		: std::runtime_error(s) {}
+};
+
+class ErrTextureUpdate : public std::runtime_error
+{
+public:
+	ErrTextureUpdate(const char* s)
 		: std::runtime_error(s) {}
 };
 
@@ -39,6 +47,8 @@ public:
 	CTextureInfo(const CTextureInfo&) = delete;
 	CTextureInfo& operator = (const CTextureInfo&) = delete;
 	~CTextureInfo();
+
+	void UpdateFromDeviceBuffer(float4* d_buffer, size_t pitch);
 
 	CTextureInfo* CreateAnother();
 };

@@ -9,9 +9,11 @@
 #include "IUnityGraphics.h"
 #include "IUnityGraphicsD3D11.h"
 
-#include "main.h"
+#include "ExportFunctions.h"
 
 #include "TextureInfo.h"
+
+#include "kernel.h"
 
 /* passing textures to/from unity:
 On Direct3D - like devices this returns a pointer to the base texture type(IDirect3DBaseTexture9 on D3D9, ID3D11Resource on D3D11, ID3D12Resource on D3D12).On OpenGL - like devices the GL texture "name" is returned; cast the pointer to integer type to get it.On Metal, the id<MTLTexture> pointer is returned.On platforms that do not support native code plugins, this function always returns NULL.
@@ -24,10 +26,13 @@ UnityGfxRenderer g_RendererType = kUnityGfxRendererNull;
 
 CTextureInfo* g_pTextureCurrent = nullptr;
 
+SimpleFillTexture* g_pSimpleFillTexture = nullptr;
+
+
 int g_width = 1920;
 int g_height = 1080;
 
-void InitTextures()
+void Init()
 {
 	g_pTextureCurrent = new CTextureInfo(g_width, g_height,g_Device);
 }
@@ -36,7 +41,12 @@ void Shutdown()
 {
 	delete g_pTextureCurrent;
 	g_pTextureCurrent = nullptr;
+
+	delete g_pSimpleFillTexture;
+	g_pSimpleFillTexture = nullptr;
 }
+
+FillTexture(void* _pTex);
 
 static void UNITY_INTERFACE_API
 OnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType)
@@ -68,6 +78,7 @@ OnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType)
 	}
 	};
 }
+
 
 // Unity plugin load event
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API
