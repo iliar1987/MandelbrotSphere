@@ -35,6 +35,7 @@ int g_height = 1080;
 void Init()
 {
 	g_pTextureCurrent = new CTextureInfo(g_width, g_height,g_Device);
+	g_pSimpleFillTexture = new SimpleFillTexture(g_width, g_height);
 }
 
 void Shutdown()
@@ -46,7 +47,12 @@ void Shutdown()
 	g_pSimpleFillTexture = nullptr;
 }
 
-FillTexture(void* _pTex);
+void* __stdcall FillTexture()
+{
+	g_pSimpleFillTexture->UpdateBuffer();
+	g_pTextureCurrent->UpdateFromDeviceBuffer(g_pSimpleFillTexture->GetCurrentBuffer(), g_pSimpleFillTexture->GetPitch());
+	return g_pTextureCurrent->GetTexture2D();
+}
 
 static void UNITY_INTERFACE_API
 OnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType)

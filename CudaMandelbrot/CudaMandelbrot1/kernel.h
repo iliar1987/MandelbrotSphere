@@ -14,6 +14,9 @@ public:
 	size_t GetPitch() const { return m_pitch; }
 
 	SimpleFillTexture(int width,int height);
+	SimpleFillTexture(const SimpleFillTexture&) = delete;
+	SimpleFillTexture& operator = (const SimpleFillTexture&) = delete;
+
 	~SimpleFillTexture();
 
 	float4* GetCurrentBuffer() { return m_d_buffer; }
