@@ -26,25 +26,26 @@ public class simple_test : MonoBehaviour {
 
 		//gameObject.GetComponent<MeshRenderer>().material.SetTexture("_MainTex",m_tex);
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 		//FillTexture ();
 	}
 
 	bool bFirstFrame = true;
-	void OnPreRender()
+	void OnPreCull()
 	{
 		if (bFirstFrame) {
 			bFirstFrame = false;
 
-			m_tex = new Texture2D (width, height, TextureFormat.RGBAFloat, false, true);
+			m_tex = new Texture2D (width, height, TextureFormat.RGBAFloat, false, false);
 
 			IntPtr pTexPtr = m_tex.GetNativeTexturePtr ();
 			SetTexture (pTexPtr,0);
-			FillTexture (0);
+
 
 			GameObject.Find ("sphere2").GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex",m_tex);
 		}
+		FillTexture (0);
 	}
 }

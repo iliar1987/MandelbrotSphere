@@ -87,7 +87,7 @@ void CTextureInfo::UpdateFromDeviceBuffer(float4* d_buffer,size_t pitch)
 		ReactToCudaError(status);
 	}
 
-	status = cudaMemcpy2DToArray(cuArray, 0, 0, (void*)d_buffer, pitch, m_width, m_height, cudaMemcpyDeviceToDevice);
+	status = cudaMemcpy2DToArray(cuArray, 0, 0, (void*)d_buffer, pitch, m_width*sizeof(float4), m_height, cudaMemcpyDeviceToDevice);
 	if (status != cudaSuccess)
 	{
 		ReactToCudaError(status);
