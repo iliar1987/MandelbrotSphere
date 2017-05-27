@@ -44,7 +44,7 @@ public class simple_test : MonoBehaviour {
 			SetTexture (pTexPtr,0);
 
 
-			GameObject.Find ("sphere2").GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex",m_tex);
+			GameObject.Find ("ScreenSpaceQuad").GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex",m_tex);
 		}
 		FillTexture (0);
 	}
