@@ -5,7 +5,8 @@
 
 #include <stdio.h>
 #include <stdexcept>
-
+#include <Windows.h>
+#include "common.h"
 
 __global__ void kern1(float4* buffer, int width, int height, size_t pitch, float t)
 {
@@ -31,8 +32,7 @@ SimpleFillTexture::SimpleFillTexture(int width, int height)
 	cudaStatus = cudaMallocPitch((void**)&m_d_buffer, &m_pitch, width * sizeof(float) * 4, height);
 
 	if (cudaStatus != cudaSuccess) {
-	    fprintf(stderr, "cudaMalloc failed!");
-		throw std::runtime_error("cuda malloc failed");
+		ReactToCudaError(cudaStatus);
 	}
 
 }
@@ -52,6 +52,11 @@ void SimpleFillTexture::UpdateBuffer()
 	dim3 Db = dim3(16, 16);   // block dimensions are fixed to be 256 threads
 	dim3 Dg = dim3((GetWidth() + Db.x - 1) / Db.x, (GetHeight() + Db.y - 1) / Db.y);
 	kern1 << <Dg, Db >> > (m_d_buffer, GetWidth(), GetHeight(), GetPitch(), t);
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess)
+	{
+		ReactToCudaError(err);
+	}
 }
 
 

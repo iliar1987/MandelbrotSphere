@@ -32,17 +32,23 @@ private:
 	ID3D11Device* m_pDevice;
 
 	ID3D11Texture2D *m_pTex2d;
-	ID3D11ShaderResourceView *m_pSRView;
+	//ID3D11ShaderResourceView *m_pSRView;
 	cudaGraphicsResource    *m_cudaResource;
+
+	void CreateResource();
+	void CreateTexture();
+
+	bool m_bTextureIsMine = false;
 public:
 	INT32 GetWidth() const { return m_width; }
 	INT32 GetHeight() const { return m_height; }
 
-	ID3D11ShaderResourceView * GetResourceView() { return m_pSRView; }
+	//ID3D11ShaderResourceView * GetResourceView() { return m_pSRView; }
 	ID3D11Texture2D * GetTexture2D() { return  m_pTex2d; }
 	cudaGraphicsResource    * GetCudaResource() {return m_cudaResource;}
 
 	CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice);
+	CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice, ID3D11Texture2D* pTex);
 
 	CTextureInfo(const CTextureInfo&) = delete;
 	CTextureInfo& operator = (const CTextureInfo&) = delete;

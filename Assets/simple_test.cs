@@ -6,23 +6,25 @@ using UnityEngine;
 
 public class simple_test : MonoBehaviour {
 	[DllImport ("CudaMandelbrot1")]
-	private static extern void FillTexture();
+	private static extern void FillTexture(int nTexNum);
 
 	[DllImport ("CudaMandelbrot1")]
-	private static extern IntPtr GetTexture();
+	private static extern void SetTexture(IntPtr pTex,int nTexNum);
 
 	int width = 1920;
 	int height = 1080;
 
-	Texture2D m_currentTex;
-
-	private RenderTexture m_tex;
+	//private RenderTexture m_tex;
+	private Texture2D m_tex;
 	// Use this for initialization
 	void Start () {
+//		m_tex = new RenderTexture (width, height, 0, RenderTextureFormat.ARGBFloat);
+//		m_tex.enableRandomWrite = true;
+//		m_tex.Create ();
 
-		//FillTexture ();
 
 
+		//gameObject.GetComponent<MeshRenderer>().material.SetTexture("_MainTex",m_tex);
 	}
 	
 	// Update is called once per frame
@@ -31,14 +33,18 @@ public class simple_test : MonoBehaviour {
 	}
 
 	bool bFirstFrame = true;
-
-	void OnPreRender() {
+	void OnPreRender()
+	{
 		if (bFirstFrame) {
 			bFirstFrame = false;
-			IntPtr pTex=GetTexture ();
-			m_currentTex = Texture2D.CreateExternalTexture (width, height, TextureFormat.RGBAFloat, false, true, pTex);
-			GameObject.Find("sphere2").GetComponent<Material> ().SetTexture ("_MainTex", m_currentTex);
+
+			m_tex = new Texture2D (width, height, TextureFormat.RGBAFloat, false, true);
+
+			IntPtr pTexPtr = m_tex.GetNativeTexturePtr ();
+			SetTexture (pTexPtr,0);
+			FillTexture (0);
+
+			GameObject.Find ("sphere2").GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex",m_tex);
 		}
-	
 	}
 }

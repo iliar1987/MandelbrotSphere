@@ -15,47 +15,60 @@
 
 #include "UnityCommunicate.h"
 
+#include <map>
+
+#include "common.h"
+
 /* passing textures to/from unity:
 On Direct3D - like devices this returns a pointer to the base texture type(IDirect3DBaseTexture9 on D3D9, ID3D11Resource on D3D11, ID3D12Resource on D3D12).On OpenGL - like devices the GL texture "name" is returned; cast the pointer to integer type to get it.On Metal, the id<MTLTexture> pointer is returned.On platforms that do not support native code plugins, this function always returns NULL.
 */
 
+//IDXGIAdapter           *g_pCudaCapableAdapter = NULL;  // Adapter to use
+
 IUnityInterfaces* g_UnityInterfaces = NULL;
 ID3D11Device* g_Device=NULL;
+//ID3D11DeviceContext    *g_pd3dDeviceContext = NULL;
 IUnityGraphics* g_Graphics = NULL;
 UnityGfxRenderer g_RendererType = kUnityGfxRendererNull;
 
-CTextureInfo* g_pTextureCurrent = nullptr;
-
 SimpleFillTexture* g_pSimpleFillTexture = nullptr;
 
+std::map<int, CTextureInfo*> g_mapTextures;
 
 int g_width = 1920;
 int g_height = 1080;
 
 void Init()
 {
-	g_pTextureCurrent = new CTextureInfo(g_width, g_height,g_Device);
 	g_pSimpleFillTexture = new SimpleFillTexture(g_width, g_height);
 }
 
 void Shutdown()
 {
-	delete g_pTextureCurrent;
-	g_pTextureCurrent = nullptr;
-
+	for (auto& x : g_mapTextures)
+	{
+		delete x.second;
+	}
+	
 	delete g_pSimpleFillTexture;
 	g_pSimpleFillTexture = nullptr;
 }
 
-LIBRARY_API void __stdcall FillTexture()
+LIBRARY_API void __stdcall FillTexture(int nTexNum)
 {
 	g_pSimpleFillTexture->UpdateBuffer();
-	g_pTextureCurrent->UpdateFromDeviceBuffer(g_pSimpleFillTexture->GetCurrentBuffer(), g_pSimpleFillTexture->GetPitch());
+	g_mapTextures[nTexNum]->UpdateFromDeviceBuffer(g_pSimpleFillTexture->GetCurrentBuffer(), g_pSimpleFillTexture->GetPitch());
 }
+//
+//LIBRARY_API void* __stdcall GetTexture()
+//{
+//	return g_pTextureCurrent->GetTexture2D();
+//}
 
-LIBRARY_API void* __stdcall GetTexture()
+
+LIBRARY_API void __stdcall SetTexture(void* pTex,int nTexNum)
 {
-	return g_pTextureCurrent->GetTexture2D();
+	g_mapTextures[nTexNum] = new CTextureInfo(g_width, g_height, g_Device, (ID3D11Texture2D*)pTex);
 }
 
 static void UNITY_INTERFACE_API
@@ -98,7 +111,7 @@ UnityPluginLoad(IUnityInterfaces* unityInterfaces)
 	g_Graphics = unityInterfaces->Get<IUnityGraphics>();
 	g_RendererType = g_Graphics->GetRenderer();
 	if (g_RendererType != UnityGfxRenderer::kUnityGfxRendererD3D11)
-		throw std::runtime_error("Renderer is not D3D11...");
+		ReactToError("Renderer is not D3D11...");
 	g_Graphics->RegisterDeviceEventCallback(OnGraphicsDeviceEvent);
 
 	auto pD3D = unityInterfaces->Get<IUnityGraphicsD3D11>();
