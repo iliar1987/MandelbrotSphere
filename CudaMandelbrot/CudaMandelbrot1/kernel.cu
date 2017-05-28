@@ -8,6 +8,8 @@
 #include <Windows.h>
 #include "common.h"
 
+#define ARR_AS_FLOAT3(arr) (*((float3*) (arr) ))
+
 union Quaternion
 {
 	struct
@@ -53,9 +55,25 @@ union Quaternion
 		return float3 { q.i, q.j, q.k };
 	}
 };
+
+
+__host__ __device__ float3 operator * (float x, float3 v)
+{
+	return{ x*v.x, x*v.y, x*v.z };
+}
+
+__host__ __device__ float3 operator * (float3 v, float x)
+{
+	return{ x*v.x, x*v.y, x*v.z };
+}
+
+__host__ __device__ float3 operator + (float3 u, float3 v)
+{
+	return{ u.x + v.x,u.y + v.y,u.z + v.z };
+}
 	
 
-__global__ void kernSpherical(float4* buffer, const int width, const int height, const size_t pitch, const float t, const float L, const Quaternion quatCameraInv)
+__global__ void kernSpherical(float4* buffer, const int width, const int height, const size_t pitch, const float t, const float L, const float3 vCameraRight, const float3 vCameraUp, const float3 vCameraForward)
 {
 	const int x = blockIdx.x*blockDim.x + threadIdx.x;
 	const int y = blockIdx.y*blockDim.y + threadIdx.y;
@@ -64,8 +82,7 @@ __global__ void kernSpherical(float4* buffer, const int width, const int height,
 
 	float4 *pixel = buffer + (y * width + x);
 	
-	float3 posScreen = { (float)(x - width / 2),(float)(y - height / 2), (float)L };
-	float3 posCamera = quatCameraInv.RotateVector(posScreen);
+	float3 posCamera = (float)(x - width / 2) * vCameraRight + (float)(y - height / 2) * vCameraUp + vCameraForward * (float)L;
 
 	const float r = sqrtf(posCamera.x * posCamera.x + posCamera.y * posCamera.y);
 
@@ -105,7 +122,9 @@ SimpleFillTexture::~SimpleFillTexture()
 	}
 }
 
-void SimpleFillTexture::UpdateBuffer(float4 quatCameraInv)
+
+
+void SimpleFillTexture::UpdateBuffer(float vCamRight[3], float vCamUp[3], float vCamForward[3])
 {
 	static int dir = 1;
 	static float t = 0;
@@ -125,7 +144,7 @@ void SimpleFillTexture::UpdateBuffer(float4 quatCameraInv)
 	dim3 Db = dim3(8, 8);   // block dimensions are fixed to be 256 threads
 	dim3 Dg = dim3((GetWidth() + Db.x - 1) / Db.x, (GetHeight() + Db.y - 1) / Db.y);
 
-	kernSpherical << <Dg, Db >> > (m_d_buffer, GetWidth(), GetHeight(), GetPitch(), t,L, quatCameraInv);
+	kernSpherical << <Dg, Db >> > (m_d_buffer, GetWidth(), GetHeight(), GetPitch(), t,L, ARR_AS_FLOAT3( vCamRight), ARR_AS_FLOAT3( vCamUp), ARR_AS_FLOAT3( vCamForward));
 
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess)

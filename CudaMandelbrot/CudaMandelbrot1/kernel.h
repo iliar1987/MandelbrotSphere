@@ -21,7 +21,7 @@ public:
 	~SimpleFillTexture();
 
 	float4* GetCurrentBuffer() { return m_d_buffer; }
-	void UpdateBuffer(float4 quatCameraInv);
+	void UpdateBuffer(float vCamRight[3], float vCamUp[3], float vCamForward[3]);
 };
 
 

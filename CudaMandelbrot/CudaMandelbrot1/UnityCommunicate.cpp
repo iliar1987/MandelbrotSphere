@@ -60,10 +60,9 @@ LIBRARY_API void __stdcall FillTexture(int nTexNum)
 	g_mapTextures[nTexNum]->UpdateFromDeviceBuffer(g_pSimpleFillTexture->GetCurrentBuffer(), g_pSimpleFillTexture->GetPitch());
 }
 
-LIBRARY_API void __stdcall MakeCalculation(VEC4_ARG(quatCamConj_list, float))
+LIBRARY_API void __stdcall MakeCalculation(float vCamRight[3], float vCamUp[3], float vCamForward[3])
 {
-	float4 quatCamera = { VEC4_LIST(quatCamConj_list) };
-	g_pSimpleFillTexture->UpdateBuffer(quatCamera);
+	g_pSimpleFillTexture->UpdateBuffer(vCamRight,vCamUp,vCamForward);
 }
 
 //
