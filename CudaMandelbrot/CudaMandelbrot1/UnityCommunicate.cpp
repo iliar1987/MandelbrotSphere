@@ -37,10 +37,11 @@ std::map<int, CTextureInfo*> g_mapTextures;
 
 int g_width = 1920;
 int g_height = 1080;
+float g_FOV = 60.0f * PIf / 180.0f;
 
 void Init()
 {
-	g_pSimpleFillTexture = new SimpleFillTexture(g_width, g_height);
+	g_pSimpleFillTexture = new SimpleFillTexture(g_width, g_height,g_FOV);
 }
 
 void Shutdown()
@@ -56,9 +57,15 @@ void Shutdown()
 
 LIBRARY_API void __stdcall FillTexture(int nTexNum)
 {
-	g_pSimpleFillTexture->UpdateBuffer();
 	g_mapTextures[nTexNum]->UpdateFromDeviceBuffer(g_pSimpleFillTexture->GetCurrentBuffer(), g_pSimpleFillTexture->GetPitch());
 }
+
+LIBRARY_API void __stdcall MakeCalculation(VEC4_ARG(quatCamConj_list, float))
+{
+	float4 quatCamera = { VEC4_LIST(quatCamConj_list) };
+	g_pSimpleFillTexture->UpdateBuffer(quatCamera);
+}
+
 //
 //LIBRARY_API void* __stdcall GetTexture()
 //{
