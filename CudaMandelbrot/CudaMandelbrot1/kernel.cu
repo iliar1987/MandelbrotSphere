@@ -86,11 +86,11 @@ __global__ void kernSpherical(float4* buffer, const int width, const int height,
 
 	const float r = sqrtf(posCamera.x * posCamera.x + posCamera.y * posCamera.y);
 
-	const float theta = atanf(r / posCamera.z);
-	const float phi = atan2f(posCamera.x, posCamera.y);
+	const float theta = atan2f(posCamera.z,r);
+	const float phi = atan2f(posCamera.y, posCamera.x);
 	
 	pixel->x = (1.0f + cosf(phi))*0.5f;
-	pixel->y = theta / PIf;
+	pixel->y = theta / PIf + 0.5f;
 	pixel->z = (1.0f + sinf(phi))*0.5f;;
 	pixel->w = 1.0f;
 }
@@ -140,7 +140,7 @@ void SimpleFillTexture::UpdateBuffer(float vCamRight[3], float vCamUp[3], float 
 		t = 0;
 	}
 
-	float L = (m_width / 2) * tanf(m_FOV / 2.0f);
+	float L = (float)m_height / 2.0f / tanf(m_FOV / 2.0f);
 	dim3 Db = dim3(8, 8);   // block dimensions are fixed to be 256 threads
 	dim3 Dg = dim3((GetWidth() + Db.x - 1) / Db.x, (GetHeight() + Db.y - 1) / Db.y);
 
