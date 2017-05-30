@@ -194,6 +194,10 @@ __device__ __forceinline__ void mul_128_128_HI_Approx(const uint64_t a0, const u
 
 		"addc.u64		 %1, %1,	0	;\n\t"  /* propagate carry */
 
+		"add.cc.u64		 %0, %0, 1		;\n\t" /*add 1 which is average carry for neglecting the lower multiplications*/
+
+		"addc.u64		%1, %1, 0		;\n\t" /*propagate carry from 'add 1'*/
+
 		"}"
 
 		: "=l"(p0), "=l"(p1)
@@ -208,11 +212,22 @@ __device__ __forceinline__ void mul_128_128_HI_Approx(const uint64_t a0, const u
 
 }
 
+#define ALL_ONES64 0xffffffffffffffffL
+
 class CFixedPoint128
 {
 public:
 	uint64_t lo, hi;
 	__device__ __host__ CFixedPoint128() {}
+	__device__ __host__ CFixedPoint128(uint64_t lo, uint64_t hi)
+		: lo(lo), hi(hi)
+	{
+	}
+
+	__device__ __host__ CFixedPoint128(std::pair<uint64_t, uint64_t> p)
+		: lo(p.first), hi(p.second)
+	{}
+
 	__device__ __forceinline__ CFixedPoint128 operator * (const CFixedPoint128& other) const
 	{
 		CFixedPoint128 result;
@@ -220,21 +235,32 @@ public:
 		return result;
 	}
 
-	__device__ __host__ CFixedPoint128(uint64_t lo, uint64_t hi)
-		: lo(lo),hi(hi)
-	{
-	}
-
-	__device__ __host__ CFixedPoint128(std::pair<uint64_t, uint64_t> p)
-		: lo(p.first),hi(p.second)
-	{}
-
-	__device__ CFixedPoint128 & operator += (const CFixedPoint128 &other)
+	__device__ __forceinline__ CFixedPoint128 & operator += (const CFixedPoint128 &other)
 	{
 		asm("{\n\t"
 			"add.cc.u64 %0, %0, %2 ;\n\t"
 			"addc.u64 %1, %1, %3   ;\n\t"
 		"}" : "+l"(lo), "+l"(hi) : "l"(other.lo), "l"(other.hi));
+		return *this;
+	}
+
+	__device__ __forceinline__ CFixedPoint128 & operator -= (const CFixedPoint128 &other)
+	{
+		asm("{\n\t"
+			"sub.cc.u64 %0, %0, %2 ;\n\t"
+			"subc.u64 %1, %1, %3   ;\n\t"
+			"}" : "+l"(lo), "+l"(hi) : "l"(other.lo), "l"(other.hi));
+		return *this;
+	}
+
+	__device__ __forceinline__ void Neg() 
+	{
+		asm("{\n\t"
+			"not.b64 %0, %0;\n\t"
+			"not.b64 %1, %1;\n\t"
+			"add.cc.u64 %0, %0, 1 ; \n\t"
+			"addc.u64 %1, %1, 0; \n\t"
+			"}" : "+l"(lo), "+l"(hi));
 	}
 };
 
@@ -245,31 +271,60 @@ std::ostream& operator << (std::ostream &o, const CFixedPoint128 &x)
 }
 
 
-cudaError_t mulWithCuda(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b, unsigned int size);
-
 __global__ void mulKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b)
 {
     int i = threadIdx.x;
     c[i] = a[i] * b[i];
 }
 
+
+__global__ void subtractKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b)
+{
+	int i = threadIdx.x;
+
+	/*CFixedPoint128 x = a[i];
+	x.Neg();
+	x += b[i];
+	c[i] = x;*/
+	CFixedPoint128 x = b[i];
+	x -= a[i];
+	c[i] = x;
+}
+
+
+
+typedef void CudaOp(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b);
+
+cudaError_t PerformOpWithCuda(CudaOp* op, CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b, unsigned int size);
+
 int main()
 {
     const int arraySize = 2;
-	const CFixedPoint128 a[arraySize] = { {0x1010101010101010L,0x1010101010101010L },{ 0x2020202020202020L,0x2020202020202020L } };
-	const CFixedPoint128 b[arraySize] = { { 0x1010101010101010L, 0x1010101010101010L }, { 0x2020202020202020L, 0x2020202020202020L } };
+	const CFixedPoint128 a[arraySize] = { {0x1010101010101010L,0x1010101010101010L },{ 0x2020202020202020L,0x4020202020202020L } };
+	const CFixedPoint128 b[arraySize] = { { 0x3010101010101010L, 0x1010101010101010L }, { 0x2020202020202020L, 0x2020202020202020L } };
 	CFixedPoint128 c[arraySize] = { {0,0},{1,1} };
 
     // Add vectors in parallel.
-    cudaError_t cudaStatus = mulWithCuda(c, a, b, arraySize);
+    cudaError_t cudaStatus = PerformOpWithCuda(&mulKernel, c, a, b, arraySize);
     if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "mulWithCuda failed!");
+        fprintf(stderr, "mul failed!");
         return 1;
     }
 	for (int i = 0;i < arraySize;++i)
 	{
 
 		std::cout << a[i] << "\t*\t" << b[i] << "\t=\t" << c[i] << std::endl;
+
+	}
+
+	cudaStatus = PerformOpWithCuda(&subtractKernel,c, a, b, arraySize);
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "subtract failed!");
+		return 1;
+	}
+	for (int i = 0;i < arraySize;++i)
+	{
+		std::cout << b[i] << "\t-\t" << a[i] << "\t=\t" << c[i] << std::endl;
 	}
 	
     
@@ -286,7 +341,7 @@ int main()
 }
 
 // Helper function for using CUDA to add vectors in parallel.
-cudaError_t mulWithCuda(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b, unsigned int size)
+cudaError_t PerformOpWithCuda(CudaOp* op, CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b, unsigned int size)
 {
 	CFixedPoint128 *dev_a = 0;
 	CFixedPoint128 *dev_b = 0;
@@ -333,7 +388,7 @@ cudaError_t mulWithCuda(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixed
     }
 
     // Launch a kernel on the GPU with one thread for each element.
-    mulKernel<<<1, size>>>(dev_c, dev_a, dev_b);
+    (*op)<<<1, size>>>(dev_c, dev_a, dev_b);
 
     // Check for any errors launching the kernel
     cudaStatus = cudaGetLastError();
