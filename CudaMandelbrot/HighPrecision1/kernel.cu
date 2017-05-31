@@ -10,13 +10,6 @@
 
 #include "FP128.cuh"
 
-std::ostream& operator << (std::ostream &o, const CFixedPoint128 &x)
-{
-	o << "{" << std::hex << x.lo << ", " << std::hex << x.hi << "}" << std::hex;
-	return o;
-}
-
-
 __global__ void mulKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b)
 {
     int i = threadIdx.x;
@@ -28,7 +21,7 @@ __global__ void shlKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFix
 {
 	int i = threadIdx.x;
 	CFixedPoint128 temp = a[i];
-	temp.ShiftLeft1();
+	temp <<= 1;
 	c[i] = temp;
 }
 
@@ -36,7 +29,15 @@ __global__ void shrKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFix
 {
 	int i = threadIdx.x;
 	CFixedPoint128 temp = a[i];
-	temp.ShiftRight1();
+	temp >>= 1;
+	c[i] = temp;
+}
+
+__global__ void divideByPow2Kernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b)
+{
+	int i = threadIdx.x;
+	CFixedPoint128 temp = a[i];
+	temp >>= (i+5);
 	c[i] = temp;
 }
 
@@ -68,7 +69,22 @@ __global__ void subtractKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const
 	c[i] = x;
 }
 
+void PrintFromDouble(float f)
+{
+	CFixedPoint128 fp128(f);
+	uint32_t& f_x = *(reinterpret_cast<uint32_t*>(&f));
+	printf("%08x = ", f_x);
+	std::cout << fp128 << std::endl;
+}
 
+void TestFromDouble()
+{
+	float arr[] = { 0.25f,0.5f,1.0f,1.5f,1.25f,0.75f,-1.0f,2.0f,4.0f };
+	for (float x : arr)
+	{
+		PrintFromDouble(x);
+	}
+}
 
 typedef void CudaOp(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b);
 
@@ -76,13 +92,16 @@ cudaError_t PerformOpWithCuda(CudaOp* op, CFixedPoint128 *c, const CFixedPoint12
 
 int main()
 {
-    const int arraySize = 2;
-	const CFixedPoint128 a[arraySize] = { {0x1010101010101010L,0x1010101010101010L },{ 0x2020202020202020L,0x4020202020202020L } };
-	const CFixedPoint128 b[arraySize] = { { 0x3010101010101010L, 0x1010101010101010L }, { 0x2020202020202020L, 0x2020202020202020L } };
-	CFixedPoint128 c[arraySize] = { {0,0},{1,1} };
+	TestFromDouble();
 
-    // Add vectors in parallel.
-    cudaError_t cudaStatus = PerformOpWithCuda(&mulKernel, c, a, b, arraySize);
+
+    const int arraySize = 3;
+	const CFixedPoint128 a[arraySize] = { {0x1010101010101010L,0x1010101010101010L },{ 0x2020202020202020L,0x4020202020202020L },{ 0,0x2000000000000000L } };
+	const CFixedPoint128 b[arraySize] = { { 0x3010101010101010L, 0x1010101010101010L }, { 0x2020202020202020L, 0x2020202020202020L },{ 0,0x2000000000000000L } };
+	CFixedPoint128 c[arraySize] = { {0,0},{1,1} };
+	cudaError_t cudaStatus;
+
+    cudaStatus = PerformOpWithCuda(&mulKernel, c, a, b, arraySize);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "mul failed!");
         return 1;
@@ -133,6 +152,16 @@ int main()
 	for (int i = 0;i < arraySize;++i)
 	{
 		std::cout << a[i] << ">>1 \t=\t" << c[i] << std::endl;
+	}
+
+	cudaStatus = PerformOpWithCuda(&divideByPow2Kernel, c, a, b, arraySize);
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "divide by pow 2 failed!");
+		return 1;
+	}
+	for (int i = 0;i < arraySize;++i)
+	{
+		std::cout << a[i] << "/2**"<<i+5<<" \t=\t" << c[i] << std::endl;
 	}
 
     // cudaDeviceReset must be called before exiting in order for profiling and

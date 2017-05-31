@@ -1,47 +1,22 @@
 #pragma once
 
+#include <iostream>
+#include <stdio.h>
+#include <iomanip>
+#include <assert.h>
 
 typedef unsigned long long int uint64_t;
 typedef signed long long int int64_t;
 
-__device__ __forceinline__ void mul_128_128_HI_Approx(const uint64_t a0, const uint64_t a1,
-
-	const uint64_t b0, const uint64_t b1,
-
-	uint64_t &p0, uint64_t &p1)
-
-{
-
-
-	asm("{\n\t"
-
-		"mul.hi.u64     %0, %2, %5		;\n\t"  /* (a0 * b1)_hi */
-
-		"mad.hi.cc.u64  %0, %3,  %4, %0;\n\t"  /* (a1 * b0)_hi */
-
-		"madc.hi.u64     %1, %3, %5,  0;\n\t"  /* (a1 * b1)_hi */
-
-		"mad.lo.cc.u64   %0, %3, %5, %0;\n\t"  /* (a1 * b1)_lo */
-
-		"addc.u64		 %1, %1,	0	;\n\t"  /* propagate carry */
-
-		"add.cc.u64		 %0, %0, 1		;\n\t" /*add 1 which is average carry for neglecting the lower multiplications*/
-
-		"addc.u64		%1, %1, 0		;\n\t" /*propagate carry from 'add 1'*/
-
-		"}"
-
-		: "=l"(p0), "=l"(p1)
-
-		: "l"(a0), "l"(a1), "l"(b0), "l"(b1));
-
-}
-
-#define ALL_ONES64 0xffffffffffffffffL
+//#define ALL_ONES64 0xffffffffffffffffL
 
 class CFixedPoint128
 {
 public:
+	static const int s_shiftRightAfterMul = 3;
+	static const int s_max = 4;
+	static const int s_min = -4;
+	static const uint64_t s_allOnes = 0xffffffffffffffffL;
 	union
 	{
 		struct {
@@ -65,8 +40,29 @@ public:
 
 	__device__ __forceinline__ CFixedPoint128 operator * (const CFixedPoint128& other) const
 	{
+
 		CFixedPoint128 result;
-		mul_128_128_HI_Approx(lo, hi, other.lo, other.hi, result.lo, result.hi);
+		asm("{\n\t"
+
+			"mul.hi.u64     %0, %2, %5		;\n\t"  /* (a0 * b1)_hi */
+
+			"mad.hi.cc.u64  %0, %3,  %4, %0;\n\t"  /* (a1 * b0)_hi */
+
+			"madc.hi.u64     %1, %3, %5,  0;\n\t"  /* (a1 * b1)_hi */
+
+			"mad.lo.cc.u64   %0, %3, %5, %0;\n\t"  /* (a1 * b1)_lo */
+
+			"addc.u64		 %1, %1,	0	;\n\t"  /* propagate carry */
+
+			"}"
+
+			: "=l"(result.lo), "=l"(result.hi)
+
+			: "l"(lo), "l"(hi), "l"(other.lo), "l"(other.hi));
+		
+		// todo: big problem. we're losing data in each multiplication.
+		result <<= 3 ;
+
 		return result;
 	}
 
@@ -88,48 +84,101 @@ public:
 		return *this;
 	}
 
-	__device__ __forceinline__ void Negate()
+	__device__ __host__ __forceinline__ CFixedPoint128 & operator <<= (const unsigned int n)
 	{
+		if (n >= 64)
+		{
+			hi = lo;
+			lo = 0;
+			hi <<= (n - 64);
+		}
+		else
+		{
+			hi <<= n;
+			const uint64_t mask = s_allOnes << (64 - n);
+			const uint64_t carry = (lo & mask);
+			lo <<= n;
+			hi |= (carry >> (64 - 2 * n));
+		}
+		return *this;
+	}
+
+	__device__ __host__ __forceinline__ CFixedPoint128 & operator >>= (const unsigned int n)
+	{
+		const bool bNeg = IsNeg();
+		if (n >= 64)
+		{
+			lo = hi;
+			hi = bNeg ? s_allOnes : 0;
+			lo >>= (n - 64);
+			if (bNeg)
+				lo |= (s_allOnes << (128 - n));
+		}
+		else
+		{
+			lo >>= n;
+			const uint64_t mask = s_allOnes >> (64 - n);
+			const uint64_t carry = (hi & mask);
+			hi >>= n;
+			lo |= (carry << (64 - 2 * n));
+			if (bNeg)
+			{
+				hi |= (s_allOnes << (64 - n));
+			}
+		}
+		
+		return *this;
+	}
+
+	__device__ __host__ __forceinline__ void Negate()
+	{
+#ifndef __CUDA_ARCH__
+		hi = ~hi;
+		lo = ~lo;
+		int msb_lo = lohi & 0x80000000;
+		lo++;
+		if ((!(lohi & 0x80000000)) && msb_lo)
+		{
+			hi++;
+		}
+#else
 		asm("{\n\t"
 			"not.b64 %0, %0;\n\t"
 			"not.b64 %1, %1;\n\t"
 			"add.cc.u64 %0, %0, 1 ; \n\t"
 			"addc.u64 %1, %1, 0; \n\t"
 			"}" : "+l"(lo), "+l"(hi));
+#endif
 	}
 
-	__device__ __forceinline__ void ShiftLeft1()
+	__host__ __device__  __forceinline__ explicit operator float() const
 	{
-		asm("{\n\t"
-			".reg .b64 temp		;\n\t"
-			"shl.b64 %1, %1, 1	;\n\t"
-			"and.b64 temp, %0, 0x1000000000000000 ;\n\t"
-			"shr.b64 temp, temp, 63 ;\n\t"
-			"or.b64 %1,%1,temp	;\n\t"
-			"shl.b64 %0, %0, 1	;\n\t"
-			"}" : "+l"(lo), "+l"(hi));
+		return 0.0; //__ffs
 	}
 
-	__device__ __forceinline__ void ShiftRight1()
+	__host__ __device__ explicit CFixedPoint128(const float d)
 	{
-		asm("{\n\t"
-			".reg .b64 temp		;\n\t"
-			"shr.b64 %0, %0, 1	;\n\t"
-			"and.b64 temp, %1, 1 ;\n\t"
-			"shl.b64 temp, temp, 63 ;\n\t"
-			"or.b64 %0,%0,temp	;\n\t"
-			"shr.b64 %1, %1, 1	;\n\t"
-			"}" : "+l"(lo), "+l"(hi));
-	}
+		/*assert(d < 4 && d >= -4);*/
+		// from wikipedia:
+		// (-1) ** b31  *  ( 1.b22b21b20...b0)_2  *  2 ** ((b30b29...b23)_2 - 127)
+		const uint32_t &x = *(reinterpret_cast<const uint32_t*>(&d));
+		uint32_t e = (x & 0x7f800000) >> 23;
+		uint32_t f = x & 0x007fffff;
+		uint32_t s = x >> 31;
+		lolo = f | 0x800000;
+		lohi = 0;
+		hi = 0;
+		int shft = (int)e + (- 127 + 125 - 24);
+		if (shft > 0)
+			operator <<=(shft);
+		else if (shft < 0)
+			operator >>=(shft);
 
-	__host__ __forceinline__ explicit operator double() const
-	{
-		return 0.0;
-	}
-
-	__host__ CFixedPoint128(double d)
-	{
-
+		if (s)
+			Negate();
+#ifndef __CUDA_ARCH__
+		printf("%f = %d\t%d\t%d\n", d,f, e-127, s);
+#endif
 	}
 
 	__device__ __host__ __forceinline__ bool IsNeg() const
@@ -137,30 +186,21 @@ public:
 		return hihi >> 31 ? true : false;
 	}
 
-
-	// TODO: it's possible
-	//__device__ __forceinline__ CFixedPoint128 & operator <<= (int n)
-	//{
-	//	asm("{\n\t"
-	//		".reg .b64 temp		;\n\t"
-	//		"shl.b64 %1, %1, 1	;\n\t"
-	//		"and.b64 temp, %0, 0x1000000000000000 ;\n\t"
-	//		"shr.b64 temp, temp, 63 ;\n\t"
-	//		"or.b64 %1,%1,temp	;\n\t"
-	//		"shl.b64 %0, %0, 1	;\n\t"
-	//		"}" : "+l"(lo), "+l"(hi));
-	//}
-
-	//__device__ __forceinline__ CFixedPoint128 & operator >>= (int n)
-	//{
-	//	int complement = 64 - n;
-	//	asm("{\n\t"
-	//		".reg .b64 temp		;\n\t"
-	//		"shr.b64 %0, %0, 1	;\n\t"
-	//		"and.b64 temp, %1, 1 ;\n\t"
-	//		"shl.b64 temp, temp, %2 ;\n\t"
-	//		"or.b64 %0,%0,temp	;\n\t"
-	//		"shr.b64 %1, %1, 1	;\n\t"
-	//		"}" : "+l"(lo), "+l"(hi));
-	//}
 };
+
+
+void output(std::ostream &o, const uint64_t x)
+{
+	o << std::setfill('0') << std::setw(16) << std::hex << x;
+}
+
+std::ostream& operator << (std::ostream &o, const CFixedPoint128 &x)
+{
+	o << "{";
+	output(o, x.lo);
+	o << ", ";
+	output(o, x.hi);
+	o << "}";
+	return o;
+}
+
