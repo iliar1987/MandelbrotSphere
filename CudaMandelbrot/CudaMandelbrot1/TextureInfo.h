@@ -7,7 +7,6 @@ struct ID3D11ShaderResourceView;
 struct ID3D11Texture2D;
 struct cudaGraphicsResource;
 struct ID3D11Device;
-struct float4;
 
 class ErrTextureCreate : public std::runtime_error
 {
@@ -26,6 +25,8 @@ public:
 class CTextureInfo
 {
 private:
+	const int m_elemSize;
+
 	INT32 m_width;
 	INT32 m_height;
 
@@ -47,14 +48,14 @@ public:
 	ID3D11Texture2D * GetTexture2D() { return  m_pTex2d; }
 	cudaGraphicsResource    * GetCudaResource() {return m_cudaResource;}
 
-	CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice);
-	CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice, ID3D11Texture2D* pTex);
+	CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice, const int elemSize);
+	CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice, ID3D11Texture2D* pTex, const int elemSize);
 
 	CTextureInfo(const CTextureInfo&) = delete;
 	CTextureInfo& operator = (const CTextureInfo&) = delete;
 	~CTextureInfo();
 
-	void UpdateFromDeviceBuffer(float4* d_buffer, size_t pitch);
+	void UpdateFromDeviceBuffer(void* d_buffer, size_t pitch);
 
 	CTextureInfo* CreateAnother();
 };

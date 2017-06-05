@@ -8,6 +8,9 @@
 #include <Windows.h>
 #include "common.h"
 
+#include "../HighPrecision1/FP128.cuh"
+
+
 #define ARR_AS_FLOAT3(arr) (*((float3*) (arr) ))
 
 union Quaternion

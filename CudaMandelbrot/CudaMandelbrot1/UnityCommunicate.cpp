@@ -74,7 +74,7 @@ LIBRARY_API void __stdcall MakeCalculation(float vCamRight[3], float vCamUp[3], 
 
 LIBRARY_API void __stdcall SetTexture(void* pTex,int nTexNum)
 {
-	g_mapTextures[nTexNum] = new CTextureInfo(g_width, g_height, g_Device, (ID3D11Texture2D*)pTex);
+	g_mapTextures[nTexNum] = new CTextureInfo(g_width, g_height, g_Device, (ID3D11Texture2D*)pTex,sizeof(float4));
 }
 
 static void UNITY_INTERFACE_API

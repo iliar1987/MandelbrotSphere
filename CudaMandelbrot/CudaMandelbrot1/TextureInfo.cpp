@@ -36,15 +36,15 @@ void CTextureInfo::CreateResource()
 	}
 }
 
-CTextureInfo::CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice)
-	: m_width(width), m_height(height), m_pDevice(pDevice)
+CTextureInfo::CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice, const int elemSize)
+	: m_width(width), m_height(height), m_pDevice(pDevice), m_elemSize(elemSize)
 {
 	CreateTexture();
 	CreateResource();
 }
 
-CTextureInfo::CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice, ID3D11Texture2D* pTex)
-	: m_width(width), m_height(height), m_pDevice(pDevice)
+CTextureInfo::CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice, ID3D11Texture2D* pTex, const int elemSize)
+	: m_width(width), m_height(height), m_pDevice(pDevice), m_elemSize(elemSize)
 {
 	m_pTex2d = pTex;
 
@@ -65,10 +65,10 @@ CTextureInfo::~CTextureInfo()
 
 CTextureInfo* CTextureInfo::CreateAnother()
 {
-	return new CTextureInfo(m_width, m_height,m_pDevice);
+	return new CTextureInfo(m_width, m_height,m_pDevice,m_elemSize);
 }
 
-void CTextureInfo::UpdateFromDeviceBuffer(float4* d_buffer,size_t pitch)
+void CTextureInfo::UpdateFromDeviceBuffer(void* d_buffer,size_t pitch)
 {
 	cudaError_t status;
 
@@ -87,7 +87,7 @@ void CTextureInfo::UpdateFromDeviceBuffer(float4* d_buffer,size_t pitch)
 		ReactToCudaError(status);
 	}
 
-	status = cudaMemcpy2DToArray(cuArray, 0, 0, (void*)d_buffer, pitch, m_width*sizeof(float4), m_height, cudaMemcpyDeviceToDevice);
+	status = cudaMemcpy2DToArray(cuArray, 0, 0, d_buffer, pitch, m_width * m_elemSize, m_height, cudaMemcpyDeviceToDevice);
 	if (status != cudaSuccess)
 	{
 		ReactToCudaError(status);
