@@ -154,6 +154,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile Include="kernel.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CComplex.cuh" />
     <ClInclude Include="FP128.cuh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
