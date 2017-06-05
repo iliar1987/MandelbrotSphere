@@ -42,12 +42,15 @@ public:
 	__host__ __device__ explicit operator float() const;
 	__host__ __device__ explicit CFixedPoint128(const float d);
 
-	__device__ __forceinline__ CFixedPoint128 operator * (const CFixedPoint128& other) const; //int128 multiplication with multiplication by 8 afterward (too keep place of point).
+	//__device__ __forceinline__ CFixedPoint128 operator * (const CFixedPoint128& other) const; //int128 multiplication with multiplication by 8 afterward (to keep place of point).
+	__device__ __forceinline__ CFixedPoint128 & operator *= (const CFixedPoint128 &other);
 	__device__ __forceinline__ CFixedPoint128 & operator += (const CFixedPoint128 &other);
 	__device__ __forceinline__ CFixedPoint128 & operator -= (const CFixedPoint128 &other);
 
 	__device__ __host__ CFixedPoint128 & operator <<= (const unsigned int n); //in the sense of multiply by power of 2
 	__device__ __host__ CFixedPoint128 & operator >>= (const unsigned int n); //in the sense of divide by power of 2
+
+	__device__ __forceinline__ void Sqr();
 
 	__device__ __host__ void Negate(); //switch sign (2's complement)
 
@@ -82,7 +85,7 @@ public:
 		: CComplex(other)
 	{}
 	using CComplex::CComplex;
-
+	CComplexFP128() : CComplex() {}
 	__device__ __host__ bool OutsideRadius2() const
 	{
 		if ( (((x.hihi & 0x80000000) >> 1) ^ (x.hihi & 0x40000000))
@@ -159,13 +162,18 @@ __host__ __device__ inline CFixedPoint128::CFixedPoint128(const float d)
 	//		printf("%f = %d\t%d\t%d\n", d, f, e - 127, s);
 	//#endif
 }
+//
+//__device__ __forceinline__ CFixedPoint128 CFixedPoint128::operator * (const CFixedPoint128& other) const
+//{
+//	CFixedPoint128 result(*this);
+//	result *= other;
+//	return result;
+//}
 
-__device__ __forceinline__ CFixedPoint128 CFixedPoint128::operator * (const CFixedPoint128& other) const
+__device__ __forceinline__ CFixedPoint128 & CFixedPoint128::operator *= (const CFixedPoint128& other)
 {
-	CFixedPoint128 result;
 	uint64_t p1;
 	asm("{\n\t"
-		".reg .u64 %2					;\n\t" //declare p1 register
 		"mul.hi.u64		%2,	%3,	%5		;\n\t" // p1 = (a0 * b0)_hi
 		"mad.lo.cc.u64		%2,	%3,	%6,	%2	;\n\t" // p1 += (a0 * b1)_lo -> C
 		"madc.hi.u64     %0, %3, %6,  0		;\n\t" // p2 = (a0 * b1)_hi + C
@@ -175,14 +183,22 @@ __device__ __forceinline__ CFixedPoint128 CFixedPoint128::operator * (const CFix
 		"mad.lo.cc.u64   %0, %4, %6, %0;\n\t"  // p2 += (a1 * b1)_lo -> C 
 		"addc.u64		 %1, %1,	0	;\n\t"  // p3 += C
 		"}"
-		: "=l"(result.lo), "=l"(result.hi), "=l"(p1)
+		: "=l"(lo), "=l"(hi), "=l"(p1)
 		: "l"(lo), "l"(hi), "l"(other.lo), "l"(other.hi));
 
-	result <<= 3; // multiply by 8
-	result.lo |= (p1 << 61); //add lower 3 bits from p1.
+	operator <<= (3); // multiply by 8
+	lo |= (p1 << 61); //add lower 3 bits from p1.
 
-	return result;
+	return *this;
 }
+
+__device__ __forceinline__ void CFixedPoint128::Sqr()
+{
+	//TODO: make something more efficient
+	operator *= (*this);
+}
+
+
 __device__ __forceinline__ CFixedPoint128 & CFixedPoint128::operator += (const CFixedPoint128 &other)
 {
 	asm("{\n\t"

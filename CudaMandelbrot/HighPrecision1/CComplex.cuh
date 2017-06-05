@@ -49,23 +49,24 @@ public:
 		return *this;
 	}
 
-	__device__ __host__ CComplex operator * (const CComplex& b) const
-	{
-		CComplex result;
+	//__device__ __host__ CComplex operator * (const CComplex& b) const
+	//{
+	//	CComplex result;
 
-		result.x = x * b.x;
-		result.x -= y * b.y;
+	//	result.x = x * b.x;
+	//	result.x -= y * b.y;
 
-		result.y = x*b.y;
-		result.y += y*b.x;
+	//	result.y = x*b.y;
+	//	result.y += y*b.x;
 
-		return result;
-	}
+	//	return result;
+	//}
 
 	__device__  CComplex& operator *= (const Real& r)
 	{
-		x = x * r;
-		y = y * r;
+		x *= r;
+		y *= r;
+		return *this;
 	}
 
 	__device__  CComplex operator * (const Real& r) const
@@ -75,17 +76,19 @@ public:
 		return result;
 	}
 
-	__device__  CComplex Sqr() const
+	__device__  void Sqr()
 	{
-		CComplex result;
+		Real oldX(x);
+		Real oldY(y);
 
-		result.x = x * x;
-		result.x -= y * y;
+		x.Sqr();
+		y.Sqr();
+		x -= y;
+		
 
-		result.y = x*y;
-		result.y <<= 1;
-
-		return result;
+		y = oldX;
+		y *= oldY;
+		y <<= 1;
 	}
 };
 

@@ -13,7 +13,8 @@
 __global__ void mulKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b)
 {
     int i = threadIdx.x;
-    c[i] = a[i] * b[i];
+	c[i] = a[i];
+	c[i] *= b[i];
 }
 
 
@@ -72,7 +73,7 @@ __global__ void subtractKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const
 __global__ void ComplexSqrKernel(CComplexFP128 *c)
 {
 	int i = threadIdx.x;
-	c[i] = c[i].Sqr();
+	c[i].Sqr();
 }
 
 #define REINTERPRET_FLOAT_UINT32(f) *(reinterpret_cast<uint32_t*>(&f))
