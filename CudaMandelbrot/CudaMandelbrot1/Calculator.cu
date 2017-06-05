@@ -13,7 +13,7 @@ CCalculator::CCalculator(int width, int height, float FOV)
 {
 	cudaError_t cudaStatus;
 
-	cudaStatus = cudaMallocPitch((void**)&m_d_buffer, &m_pitch, width * sizeof(float4), height);
+	cudaStatus = cudaMallocPitch((void**)&m_d_buffer, &m_pitch, width * sizeof(float), height);
 
 	if (cudaStatus != cudaSuccess) {
 		ReactToCudaError(cudaStatus);

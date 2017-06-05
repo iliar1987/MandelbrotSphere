@@ -14,7 +14,7 @@ void CTextureInfo::CreateTexture()
 	desc.Height = m_height;
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
-	desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	desc.Format = DXGI_FORMAT_R32_FLOAT;
 	desc.SampleDesc.Count = 1;
 	desc.Usage = D3D11_USAGE_DEFAULT;
 	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -36,8 +36,8 @@ void CTextureInfo::CreateResource()
 	}
 }
 
-CTextureInfo::CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice, const int elemSize)
-	: m_width(width), m_height(height), m_pDevice(pDevice), m_elemSize(elemSize)
+CTextureInfo::CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice)
+	: m_width(width), m_height(height), m_pDevice(pDevice), m_elemSize(sizeof(float))
 {
 	CreateTexture();
 	CreateResource();
@@ -65,7 +65,7 @@ CTextureInfo::~CTextureInfo()
 
 CTextureInfo* CTextureInfo::CreateAnother()
 {
-	return new CTextureInfo(m_width, m_height,m_pDevice,m_elemSize);
+	return new CTextureInfo(m_width, m_height,m_pDevice);
 }
 
 void CTextureInfo::UpdateFromDeviceBuffer(void* d_buffer,size_t pitch)

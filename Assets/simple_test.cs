@@ -51,7 +51,7 @@ public class simple_test : MonoBehaviour {
 		if (bFirstFrame) {
 			bFirstFrame = false;
 
-			m_tex = new Texture2D (width, height, TextureFormat.RGBAFloat, false, false);
+			m_tex = new Texture2D (width, height, TextureFormat.RFloat, false, false);
 
 			IntPtr pTexPtr = m_tex.GetNativeTexturePtr ();
 			SetTexture (pTexPtr,0);

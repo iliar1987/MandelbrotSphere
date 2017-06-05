@@ -11,7 +11,7 @@
 
 #include "TextureInfo.h"
 
-#include "kernel.h"
+#include "SimpleFillTexture.h"
 
 #include "UnityCommunicate.h"
 
@@ -74,7 +74,7 @@ LIBRARY_API void __stdcall MakeCalculation(float vCamRight[3], float vCamUp[3], 
 
 LIBRARY_API void __stdcall SetTexture(void* pTex,int nTexNum)
 {
-	g_mapTextures[nTexNum] = new CTextureInfo(g_width, g_height, g_Device, (ID3D11Texture2D*)pTex,sizeof(float4));
+	g_mapTextures[nTexNum] = new CTextureInfo(g_width, g_height, g_Device, (ID3D11Texture2D*)pTex,sizeof(float));
 }
 
 static void UNITY_INTERFACE_API

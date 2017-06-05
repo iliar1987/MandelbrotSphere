@@ -21,6 +21,14 @@
 
 			#include "UnityCG.cginc"
 
+			float3 HUEtoRGB(in float H)
+			{
+				float R = abs(H * 6 - 3) - 1;
+				float G = 2 - abs(H * 6 - 2);
+				float B = 2 - abs(H * 6 - 4);
+				return saturate(float3(R,G,B));
+			}
+
 			struct v2f
 			{
 				float2 uv : TEXCOORD0;
@@ -41,7 +49,7 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				return tex2D(_MainTex, i.uv);
+				return fixed4(HUEtoRGB(tex2D(_MainTex, i.uv).x),1);
 			}
 			ENDCG
 		}

@@ -48,7 +48,7 @@ public:
 	ID3D11Texture2D * GetTexture2D() { return  m_pTex2d; }
 	cudaGraphicsResource    * GetCudaResource() {return m_cudaResource;}
 
-	CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice, const int elemSize);
+	CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice);
 	CTextureInfo(INT32 width, INT32 height, ID3D11Device* pDevice, ID3D11Texture2D* pTex, const int elemSize);
 
 	CTextureInfo(const CTextureInfo&) = delete;
