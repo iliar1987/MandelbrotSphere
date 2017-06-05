@@ -161,10 +161,10 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Calculator.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="ExportFunctions.h" />
     <ClInclude Include="SimpleFillTexture.h" />
+    <ClInclude Include="TextureFiller.h" />
     <ClInclude Include="TextureInfo.h" />
     <ClInclude Include="UnityCommunicate.h" />
     <ClInclude Include="utilities.cuh" />
@@ -174,8 +174,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="UnityCommunicate.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Calculator.cu" />
     <CudaCompile Include="SimpleFillTexture.cu" />
+    <CudaCompile Include="TextureFiller.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

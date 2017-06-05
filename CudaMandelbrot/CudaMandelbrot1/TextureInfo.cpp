@@ -68,35 +68,3 @@ CTextureInfo* CTextureInfo::CreateAnother()
 	return new CTextureInfo(m_width, m_height,m_pDevice);
 }
 
-void CTextureInfo::UpdateFromDeviceBuffer(void* d_buffer,size_t pitch)
-{
-	cudaError_t status;
-
-	cudaArray *cuArray;
-
-	cudaGraphicsResource* resources[] = { m_cudaResource };
-	status = cudaGraphicsMapResources(1, resources);
-	if (status != cudaSuccess)
-	{
-		ReactToCudaError(status);
-	}
-
-	status = cudaGraphicsSubResourceGetMappedArray(&cuArray, m_cudaResource, 0, 0);
-	if (status != cudaSuccess)
-	{
-		ReactToCudaError(status);
-	}
-
-	status = cudaMemcpy2DToArray(cuArray, 0, 0, d_buffer, pitch, m_width * m_elemSize, m_height, cudaMemcpyDeviceToDevice);
-	if (status != cudaSuccess)
-	{
-		ReactToCudaError(status);
-	}
-
-	status = cudaGraphicsUnmapResources(1, resources);
-	if (status != cudaSuccess)
-	{
-		ReactToCudaError(status);
-	}
-
-}

@@ -1,6 +1,8 @@
 #pragma once
 
-class CCalculator
+class CTextureInfo;
+
+class CTextureFiller
 {
 private:
 	float* m_d_buffer = nullptr;
@@ -16,12 +18,15 @@ public:
 	int GetHeight() const { return m_height; }
 	size_t GetPitch() const { return m_pitch; }
 
-	CCalculator(int width, int height, float FOV);
-	CCalculator(const CCalculator&) = delete;
-	CCalculator& operator = (const CCalculator&) = delete;
+	CTextureFiller(int width, int height, float FOV);
+	CTextureFiller(const CTextureFiller&) = delete;
+	CTextureFiller& operator = (const CTextureFiller&) = delete;
 
-	virtual ~CCalculator();
+	virtual ~CTextureFiller();
 
 	virtual float* GetCurrentBuffer() { return m_d_buffer; }
 	virtual void UpdateBuffer(float vCamRight[3], float vCamUp[3], float vCamForward[3]) = 0;
+
+	void CTextureFiller::FillTexture(CTextureInfo& tex);
+
 };

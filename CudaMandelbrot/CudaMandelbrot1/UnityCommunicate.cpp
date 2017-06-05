@@ -57,7 +57,7 @@ void Shutdown()
 
 LIBRARY_API void __stdcall FillTexture(int nTexNum)
 {
-	g_mapTextures[nTexNum]->UpdateFromDeviceBuffer(g_pSimpleFillTexture->GetCurrentBuffer(), g_pSimpleFillTexture->GetPitch());
+	g_pSimpleFillTexture->FillTexture(* g_mapTextures[nTexNum]);
 }
 
 LIBRARY_API void __stdcall MakeCalculation(float vCamRight[3], float vCamUp[3], float vCamForward[3])

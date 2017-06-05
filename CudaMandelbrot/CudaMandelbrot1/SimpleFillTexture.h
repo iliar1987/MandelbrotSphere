@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Calculator.h"
+#include "TextureFiller.h"
 
-class SimpleFillTexture : public CCalculator
+class SimpleFillTexture : public CTextureFiller
 {
 public:
-	using CCalculator::CCalculator;
+	using CTextureFiller::CTextureFiller;
 	virtual void UpdateBuffer(float vCamRight[3], float vCamUp[3], float vCamForward[3]) override;
 };
 

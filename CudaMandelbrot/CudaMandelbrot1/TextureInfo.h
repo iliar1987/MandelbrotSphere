@@ -41,6 +41,7 @@ private:
 
 	bool m_bTextureIsMine = false;
 public:
+	int GetElementSize() const { return m_elemSize; }
 	INT32 GetWidth() const { return m_width; }
 	INT32 GetHeight() const { return m_height; }
 
@@ -54,8 +55,6 @@ public:
 	CTextureInfo(const CTextureInfo&) = delete;
 	CTextureInfo& operator = (const CTextureInfo&) = delete;
 	~CTextureInfo();
-
-	void UpdateFromDeviceBuffer(void* d_buffer, size_t pitch);
 
 	CTextureInfo* CreateAnother();
 };
