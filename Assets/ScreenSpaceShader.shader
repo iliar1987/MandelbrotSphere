@@ -49,7 +49,9 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				return fixed4(HUEtoRGB(tex2D(_MainTex, i.uv).x),1);
+				float x = tex2D(_MainTex, i.uv).x;
+				x = frac(x/4.124152); //just some number.
+				return fixed4(HUEtoRGB(x),1);
 			}
 			ENDCG
 		}

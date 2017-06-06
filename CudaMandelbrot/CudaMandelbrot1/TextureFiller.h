@@ -8,24 +8,45 @@ private:
 	float* m_d_buffer = nullptr;
 	const int m_width;
 	const int m_height;
-	const float m_FOV;
+	const float m_fL;
 	size_t m_pitch;
-protected:
-	float GetFov() const { return m_FOV; }
-	float* GetBuffer() { return m_d_buffer; }
-public:
 	int GetWidth() const { return m_width; }
 	int GetHeight() const { return m_height; }
 	size_t GetPitch() const { return m_pitch; }
+public:
+	struct KernelParameters;
+private:
+	virtual void LaunchKernel(const KernelParameters& params) = 0;
+protected:
+	
+	float GetL() const { return m_fL; }
+	float* GetBuffer() { return m_d_buffer; }
+public:
+	struct FrameParameters
+	{
+		float3 vCamRight;
+		float3 vCamUp;
+		float3 vCamForward;
+		float t;
+		float rho;
+	};
+	struct KernelParameters
+	{
+		FrameParameters tFrameParams;
+		int width;
+		int height;
+		size_t pitch;
+		float L;
+	};
+public:
+
 
 	CTextureFiller(int width, int height, float FOV);
 	CTextureFiller(const CTextureFiller&) = delete;
 	CTextureFiller& operator = (const CTextureFiller&) = delete;
 
 	virtual ~CTextureFiller();
-
-	virtual float* GetCurrentBuffer() { return m_d_buffer; }
-	virtual void UpdateBuffer(float vCamRight[3], float vCamUp[3], float vCamForward[3]) = 0;
+	void UpdateBuffer(const FrameParameters &params);
 
 	void CTextureFiller::FillTexture(CTextureInfo& tex);
 

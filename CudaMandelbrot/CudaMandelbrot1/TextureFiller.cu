@@ -13,7 +13,8 @@
 #include "assert.h"
 
 CTextureFiller::CTextureFiller(int width, int height, float FOV)
-	: m_width(width), m_height(height), m_FOV(FOV)
+	: m_width(width), m_height(height),
+	m_fL(height / 2.0f / tanf(FOV / 2.0f))
 {
 	cudaError_t cudaStatus;
 
@@ -69,4 +70,25 @@ void CTextureFiller::FillTexture(CTextureInfo& tex)
 		ReactToCudaError(status);
 	}
 
+}
+
+void CTextureFiller::UpdateBuffer(const FrameParameters &params)
+{
+	dim3 Db = dim3(8, 8);   // block dimensions are fixed to be 256 threads
+	dim3 Dg = dim3((GetWidth() + Db.x - 1) / Db.x, (GetHeight() + Db.y - 1) / Db.y);
+
+	KernelParameters kParams;
+	kParams.tFrameParams = params;
+	kParams.width = GetWidth();
+	kParams.height = GetHeight();
+	kParams.L = GetL();
+	kParams.pitch = GetPitch();
+
+	LaunchKernel(kParams);
+
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess)
+	{
+		ReactToCudaError(err);
+	}
 }

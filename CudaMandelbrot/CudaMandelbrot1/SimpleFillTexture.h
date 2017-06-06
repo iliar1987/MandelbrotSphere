@@ -4,9 +4,11 @@
 
 class SimpleFillTexture : public CTextureFiller
 {
+private:
+	virtual void LaunchKernel(const KernelParameters& params) override;
 public:
 	using CTextureFiller::CTextureFiller;
-	virtual void UpdateBuffer(float vCamRight[3], float vCamUp[3], float vCamForward[3]) override;
+	
 };
 
 

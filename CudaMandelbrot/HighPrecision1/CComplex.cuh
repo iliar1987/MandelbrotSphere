@@ -30,7 +30,7 @@ public:
 		: CComplex(p.first,p.second)
 	{}
 
-	__device__ __host__ CComplex& operator += (const CComplex& other)
+	__device__  CComplex& operator += (const CComplex& other)
 	{
 		x += other.x;
 		y += other.y;

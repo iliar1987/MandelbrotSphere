@@ -21,4 +21,5 @@
 
 #define PIf 3.14159265f
 
+#define ARR_AS_FLOAT3(arr) (*((float3*) (arr) ))
 

@@ -1,6 +1,7 @@
+#pragma once
 
+#include "TextureFiller.h"
 
-#define ARR_AS_FLOAT3(arr) (*((float3*) (arr) ))
 
 union Quaternion
 {
@@ -49,17 +50,28 @@ union Quaternion
 };
 
 
-__host__ __device__ float3 operator * (float x, float3 v)
+__host__ __device__ inline float3 operator * (float x, float3 v)
 {
 	return{ x*v.x, x*v.y, x*v.z };
 }
 
-__host__ __device__ float3 operator * (float3 v, float x)
+__host__ __device__ inline float3 operator * (float3 v, float x)
 {
 	return{ x*v.x, x*v.y, x*v.z };
 }
 
-__host__ __device__ float3 operator + (float3 u, float3 v)
+__host__ __device__ inline float3 operator + (float3 u, float3 v)
 {
 	return{ u.x + v.x,u.y + v.y,u.z + v.z };
+}
+
+
+__device__ inline void GetThetaPhi(float& theta, float &phi, const int x, const int y, const CTextureFiller::KernelParameters &params)
+{
+	float3 posCamera = (float)(x - params.width / 2) * params.tFrameParams.vCamRight + (float)(y - params.height / 2) * params.tFrameParams.vCamUp + params.tFrameParams.vCamForward * (float)params.L;
+
+	const float r = sqrtf(posCamera.x * posCamera.x + posCamera.y * posCamera.y);
+
+	theta = atan2f(posCamera.z, r);
+	phi = atan2f(posCamera.y, posCamera.x);
 }

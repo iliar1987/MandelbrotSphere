@@ -12,7 +12,7 @@ public class simple_test : MonoBehaviour {
 	private static extern void SetTexture(IntPtr pTex,int nTexNum);
 
 	[DllImport ("CudaMandelbrot1")]
-	private static extern void MakeCalculation (float[] vCamRight,float[] vCamUp,float[] vCamForward);
+	private static extern void MakeCalculation (float[] vCamRight,float[] vCamUp,float[] vCamForward, float t, float rho);
 
 	int width = 1920;
 	int height = 1080;
@@ -45,9 +45,13 @@ public class simple_test : MonoBehaviour {
 	}
 
 	bool bFirstFrame = true;
+	float t = 0;
+
+	public float rho=1.0f;
 	//public Quaternion q;
 	void OnPreCull()
 	{
+		t += Time.deltaTime;
 		if (bFirstFrame) {
 			bFirstFrame = false;
 
@@ -60,7 +64,7 @@ public class simple_test : MonoBehaviour {
 			GameObject.Find ("ScreenSpaceQuad").GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex",m_tex);
 		}
 		//q = quatRot;
-		MakeCalculation (Vec2Arr(transform.right),Vec2Arr(transform.up),Vec2Arr(transform.forward));
+		MakeCalculation (Vec2Arr(transform.right),Vec2Arr(transform.up),Vec2Arr(transform.forward),t,rho);
 		FillTexture (0);
 	}
 }

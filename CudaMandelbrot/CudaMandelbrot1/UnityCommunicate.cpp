@@ -12,6 +12,7 @@
 #include "TextureInfo.h"
 
 #include "SimpleFillTexture.h"
+#include "MandelbrotKernel.h"
 
 #include "UnityCommunicate.h"
 
@@ -31,7 +32,7 @@ ID3D11Device* g_Device=NULL;
 IUnityGraphics* g_Graphics = NULL;
 UnityGfxRenderer g_RendererType = kUnityGfxRendererNull;
 
-SimpleFillTexture* g_pSimpleFillTexture = nullptr;
+CTextureFiller* g_pSimpleFillTexture = nullptr;
 
 std::map<int, CTextureInfo*> g_mapTextures;
 
@@ -41,7 +42,8 @@ float g_FOV = 60.0f * PIf / 180.0f;
 
 void Init()
 {
-	g_pSimpleFillTexture = new SimpleFillTexture(g_width, g_height,g_FOV);
+	//g_pSimpleFillTexture = new SimpleFillTexture(g_width, g_height,g_FOV);
+	g_pSimpleFillTexture = new CMandelbrotTextureFiller(g_width, g_height, g_FOV);
 }
 
 void Shutdown()
@@ -60,9 +62,15 @@ LIBRARY_API void __stdcall FillTexture(int nTexNum)
 	g_pSimpleFillTexture->FillTexture(* g_mapTextures[nTexNum]);
 }
 
-LIBRARY_API void __stdcall MakeCalculation(float vCamRight[3], float vCamUp[3], float vCamForward[3])
+LIBRARY_API void __stdcall MakeCalculation(float vCamRight[3], float vCamUp[3], float vCamForward[3],float t,float rho)
 {
-	g_pSimpleFillTexture->UpdateBuffer(vCamRight,vCamUp,vCamForward);
+	CTextureFiller::FrameParameters params;
+	params.t = t;
+	params.vCamForward = ARR_AS_FLOAT3(vCamForward);
+	params.vCamRight = ARR_AS_FLOAT3(vCamRight);
+	params.vCamUp = ARR_AS_FLOAT3(vCamUp);
+	params.rho = rho;
+	g_pSimpleFillTexture->UpdateBuffer(params);
 }
 
 //
