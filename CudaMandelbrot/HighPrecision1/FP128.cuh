@@ -88,18 +88,21 @@ public:
 	CComplexFP128() : CComplex() {}
 	__device__ __host__ bool OutsideRadius2() const
 	{
-		if ( (((x.hihi & 0x80000000) >> 1) ^ (x.hihi & 0x40000000))
-			|| (((y.hihi & 0x80000000) >> 1) ^ (y.hihi & 0x40000000)) ) //if |x| >= 2 || |y| >= 2
-		{
-			return true;
-		}
-		uint32_t sqr;
-#ifndef __CUDA_ARCH__
-		sqr = static_cast<uint32_t>(((__emul(x.hihi, x.hihi) + __emul(y.hihi, y.hihi))) >> 32);
-#else
-		sqr = __mulhi(x.hihi, x.hihi) + __mulhi(y.hihi,y.hihi);
-#endif
-		return (sqr >> (32 - 3 - 1)) != 0;
+//		if ( (((x.hihi & 0x80000000) >> 1) ^ (x.hihi & 0x40000000))
+//			|| (((y.hihi & 0x80000000) >> 1) ^ (y.hihi & 0x40000000)) ) //if |x| >= 2 || |y| >= 2
+//		{
+//			return true;
+//		}
+//		uint32_t sqr;
+//#ifndef __CUDA_ARCH__
+//		sqr = static_cast<uint32_t>(((__emul(x.hihi, x.hihi) + __emul(y.hihi, y.hihi))) >> 32);
+//#else
+//		sqr = __mulhi(x.hihi, x.hihi) + __mulhi(y.hihi,y.hihi);
+//#endif
+//		return (sqr >> (32 - 3 - 1)) != 0;
+		float fX = (float)x;
+		float fY = (float)y;
+		return fX*fX + fY*fY >= 4.0f;
 	}
 };
 

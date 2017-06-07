@@ -40,13 +40,13 @@ int g_width = 1920;
 int g_height = 1080;
 float g_FOV = 60.0f * PIf / 180.0f;
 
-void Init()
+LIBRARY_API void __stdcall Init()
 {
 	//g_pSimpleFillTexture = new SimpleFillTexture(g_width, g_height,g_FOV);
 	g_pSimpleFillTexture = new CMandelbrotTextureFiller(g_width, g_height, g_FOV);
 }
 
-void Shutdown()
+LIBRARY_API void __stdcall Shutdown()
 {
 	for (auto& x : g_mapTextures)
 	{
