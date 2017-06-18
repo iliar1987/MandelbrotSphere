@@ -85,6 +85,7 @@ void CTextureFiller::UpdateBuffer(const FrameParameters &params)
 	kParams.pitch = GetPitch();
 
 	LaunchKernel(kParams);
+	cudaDeviceSynchronize();
 
 	cudaError_t err = cudaGetLastError();
 	if (err != cudaSuccess)

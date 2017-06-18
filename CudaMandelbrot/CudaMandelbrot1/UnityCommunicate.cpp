@@ -43,6 +43,9 @@ float g_FOV = 60.0f * PIf / 180.0f;
 LIBRARY_API void __stdcall Init()
 {
 	//g_pSimpleFillTexture = new SimpleFillTexture(g_width, g_height,g_FOV);
+#ifdef _DEBUG
+	SetEnvironmentVariableA("NSIGHT_CUDA_DEBUGGER", "1");
+#endif
 	g_pSimpleFillTexture = new CMandelbrotTextureFiller(g_width, g_height, g_FOV);
 }
 

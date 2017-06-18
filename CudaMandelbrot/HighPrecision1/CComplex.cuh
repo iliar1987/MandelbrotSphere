@@ -16,14 +16,14 @@ public:
 	Real x, y;
 	__device__ __host__ CComplex() {}
 
-	__device__ __host__ CComplex(Real x, Real y) : x(x), y(y)
+	__device__ __host__ CComplex(const Real &rx, const Real &ry) : x(rx), y(ry)
 	{}
 
-	__device__ __host__ CComplex(std::pair<Real, Real> p)
+	__device__ __host__ CComplex(std::pair<const Real&, const Real&> p)
 		: CComplex(p.first,p.second)
 	{}
 
-	__device__ __host__ CComplex(float x,float y) : x(x),y(y)
+	__device__ __host__ CComplex(float fx,float fy) : x(fx),y(fy)
 	{}
 
 	__device__ __host__ CComplex(std::pair<float,float> p)
@@ -36,59 +36,40 @@ public:
 		y += other.y;
 		return *this;
 	}
-	__device__ __host__ CComplex& operator <<= (const unsigned int shft)
+	__device__ CComplex& operator <<= (const unsigned int shft)
 	{
 		x <<= shft;
 		y <<= shft;
 		return *this;
 	}
-	__device__ __host__ CComplex& operator >>= (const unsigned int shft)
+	__device__ CComplex& operator >>= (const unsigned int shft)
 	{
 		x >>= shft;
 		y >>= shft;
 		return *this;
 	}
 
-	//__device__ __host__ CComplex operator * (const CComplex& b) const
-	//{
-	//	CComplex result;
-
-	//	result.x = x * b.x;
-	//	result.x -= y * b.y;
-
-	//	result.y = x*b.y;
-	//	result.y += y*b.x;
-
-	//	return result;
-	//}
-
-	__device__  CComplex& operator *= (const Real& r)
+	__device__ CComplex operator * (const CComplex& b) const
 	{
-		x *= r;
-		y *= r;
-		return *this;
-	}
+		CComplex result;
 
-	__device__  CComplex operator * (const Real& r) const
-	{
-		CComplex result(*this);
-		result *= r;
+		result.x = x * b.x;
+		result.x -= y * b.y;
+
+		result.y = x*b.y;
+		result.y += y*b.x;
+
 		return result;
 	}
 
-	__device__  void Sqr()
+	/*__device__  CComplex operator * (const Real& r) const
 	{
-		Real oldX(x);
-		Real oldY(y);
+		return CComplex(x * r, y * r);
+	}*/
 
-		x.Sqr();
-		y.Sqr();
-		x -= y;
-		
-
-		y = oldX;
-		y *= oldY;
-		y <<= 1;
+	__device__  CComplex Sqr() const
+	{
+		return (*this) * (*this);
 	}
 };
 

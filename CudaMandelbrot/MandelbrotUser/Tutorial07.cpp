@@ -20,6 +20,8 @@
 #include "DDSTextureLoader.h"
 #include "resource.h"
 
+#include <stdio.h>
+
 using namespace DirectX;
 
 //--------------------------------------------------------------------------------------
@@ -79,6 +81,9 @@ XMMATRIX                            g_View;
 XMMATRIX                            g_Projection;
 XMFLOAT4                            g_vMeshColor( 0.7f, 0.7f, 0.7f, 1.0f );
 
+int g_width = 1920;
+int g_height = 1080;
+
 
 //--------------------------------------------------------------------------------------
 // Forward declarations
@@ -88,6 +93,7 @@ HRESULT InitDevice();
 void CleanupDevice();
 LRESULT CALLBACK    WndProc( HWND, UINT, WPARAM, LPARAM );
 void Render();
+void CreateTexture(int width, int height);
 
 
 //--------------------------------------------------------------------------------------
@@ -551,9 +557,9 @@ HRESULT InitDevice()
         return hr;
 
     // Load the Texture
-    hr = CreateDDSTextureFromFile( g_pd3dDevice, L"seafloor.dds", nullptr, &g_pTextureRV );
-    if( FAILED( hr ) )
-        return hr;
+    //hr = CreateDDSTextureFromFile( g_pd3dDevice, L"seafloor.dds", nullptr, &g_pTextureRV );
+	CreateTexture(g_width, g_height);
+    
 
     // Create the sample state
     D3D11_SAMPLER_DESC sampDesc;
@@ -715,4 +721,24 @@ void Render()
     // Present our back buffer to our front buffer
     //
     g_pSwapChain->Present( 0, 0 );
+}
+
+void CreateTexture(int width, int height)
+{
+	D3D11_TEXTURE2D_DESC desc;
+	ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
+	desc.Width = width;
+	desc.Height = height;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R32_FLOAT;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+	if (FAILED(g_pd3dDevice->CreateTexture2D(&desc, NULL, &g_pTex2d)))
+	{
+		printf("Error in CreateTexture2D");
+		exit(1);
+	}
 }

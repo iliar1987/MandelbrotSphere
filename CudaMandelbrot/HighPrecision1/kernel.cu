@@ -13,8 +13,7 @@
 __global__ void mulKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b)
 {
     int i = threadIdx.x;
-	c[i] = a[i];
-	c[i] *= b[i];
+	c[i] = a[i] * b[i];
 }
 
 
@@ -73,7 +72,17 @@ __global__ void subtractKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const
 __global__ void ComplexSqrKernel(CComplexFP128 *c)
 {
 	int i = threadIdx.x;
-	c[i].Sqr();
+	c[i] = c[i].Sqr();
+}
+
+__global__ void FromFloatKernel(CFixedPoint128* output, const float* input)
+{
+	output[threadIdx.x] = CFixedPoint128(input[threadIdx.x]);
+}
+
+__global__ void ToFloatKernel(float* output,const CFixedPoint128* input)
+{
+	output[threadIdx.x] = (float)input[threadIdx.x];
 }
 
 #define REINTERPRET_FLOAT_UINT32(f) *(reinterpret_cast<uint32_t*>(&f))
@@ -100,6 +109,38 @@ void TestFromFloat()
 	}
 }
 
+void TestFromFloatGPU()
+{
+	printf("Testing From float and back conversion (GPU): \r\n");
+	float arr[] = { 0.25f,0.5f,1.0f,1.5f,1.25f,0.75f,-2.5f,-1.25f,-0.5f,-0.000000000123f,4123423e-30f,-1.0f,2.0f,-4.0f,0.0f };
+	const int N = sizeof(arr) / sizeof(float);
+	float* d_arr;
+	float h_result[N];
+	CFixedPoint128* d_fp128;
+	CFixedPoint128 h_fp128[N];
+
+	cudaMalloc(&d_arr, N * sizeof(float));
+	cudaMemcpy(d_arr, arr, N * sizeof(float), cudaMemcpyKind::cudaMemcpyHostToDevice);
+	cudaMalloc(&d_fp128, sizeof(CFixedPoint128)*N);
+
+	FromFloatKernel <<< 1, N >>> (d_fp128, d_arr);
+	ToFloatKernel << < 1, N >> > (d_arr, d_fp128);
+	
+	cudaMemcpy(h_fp128, d_fp128, sizeof(CFixedPoint128) * N, cudaMemcpyKind::cudaMemcpyDeviceToHost);
+	cudaMemcpy(h_result, d_arr, sizeof(float) * N, cudaMemcpyKind::cudaMemcpyDeviceToHost);
+
+	cudaFree(d_arr);
+	cudaFree(d_fp128);
+
+	for (int i = 0;i < N; ++i)
+	{
+		std::cout << arr[i] << " = " << h_fp128[i] << " = " << h_result[i] << std::endl;
+	}
+	
+
+	//FromFloatKernel <<< dim3()
+}
+
 cudaError_t TestComplex();
 typedef void CudaOp(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b);
 
@@ -108,6 +149,7 @@ cudaError_t PerformOpWithCuda(CudaOp* op, CFixedPoint128 *c, const CFixedPoint12
 int main()
 {
 	TestFromFloat();
+	TestFromFloatGPU();
 
     const int arraySize = 3;
 	const CFixedPoint128 a[arraySize] = { {0x1010101010101010L,0x1010101010101010L },{1,0} ,{ 0x2020202020202020L,0x4020202020202020L } };

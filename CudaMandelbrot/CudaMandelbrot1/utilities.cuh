@@ -72,6 +72,6 @@ __device__ inline void GetThetaPhi(float& theta, float &phi, const int x, const 
 
 	const float r = sqrtf(posCamera.x * posCamera.x + posCamera.y * posCamera.y);
 
-	theta = atan2f(posCamera.z, r);
+	theta = atan2f(r, posCamera.z);
 	phi = atan2f(posCamera.y, posCamera.x);
 }
