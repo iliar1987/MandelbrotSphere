@@ -8,6 +8,15 @@
 
 #include "CComplex.cuh"
 
+typedef union { float f;uint32_t ui; } UFUI32;
+
+__host__ __device__ inline constexpr uint32_t FloatToBin32(float f)
+{
+
+	return (UFUI32{ f }).ui;
+	/*return temp.ui;*/
+}
+
 typedef unsigned long long int uint64_t;
 typedef signed long long int int64_t;
 
@@ -133,7 +142,7 @@ __host__ __device__ inline CFixedPoint128::operator float() const
 
 	float result;
 
-	uint32_t &uiResult = *(reinterpret_cast<uint32_t*>(&result));
+	uint32_t uiResult = FloatToBin32 (result);
 	uiResult = e << 23;
 	uiResult |= x.lolo & 0x007fffff; //cut off the msb (because float always begins with 1).
 	if (bNeg)
@@ -146,7 +155,7 @@ __host__ __device__ inline CFixedPoint128::CFixedPoint128(const float d)
 	/*assert(d < 4 && d >= -4);*/
 	// from wikipedia:
 	// (-1) ** b31  *  ( 1.b22b21b20...b0)_2  *  2 ** ((b30b29...b23)_2 - 127)
-	const uint32_t &x = *(reinterpret_cast<const uint32_t*>(&d));
+	const uint32_t x = *(reinterpret_cast<const uint32_t*>(&d));
 	uint32_t e = (x & 0x7f800000) >> 23;
 	uint32_t f = x & 0x007fffff;
 	uint32_t s = x >> 31;

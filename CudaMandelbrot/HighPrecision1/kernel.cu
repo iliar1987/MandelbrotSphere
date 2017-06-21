@@ -85,14 +85,13 @@ __global__ void ToFloatKernel(float* output,const CFixedPoint128* input)
 	output[threadIdx.x] = (float)input[threadIdx.x];
 }
 
-#define REINTERPRET_FLOAT_UINT32(f) *(reinterpret_cast<uint32_t*>(&f))
 
 void PrintFromFloat(float f)
 {
 	CFixedPoint128 fp128(f);
-	uint32_t& ui32F = REINTERPRET_FLOAT_UINT32(f);
+	uint32_t ui32F = FloatToBin32(f);
 	float fResult = (float)fp128;
-	uint32_t& ui32Result = REINTERPRET_FLOAT_UINT32(fResult);
+	uint32_t ui32Result = FloatToBin32(fResult);
 	printf("%08x = ", ui32F);
 	std::cout << f << " = " << fp128 << " = " << fResult;
 	printf(" = %08x\r\n", ui32Result);
