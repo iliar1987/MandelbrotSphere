@@ -40,12 +40,11 @@ int g_width = 1920;
 int g_height = 1080;
 float g_FOV = 60.0f * PIf / 180.0f;
 
-LIBRARY_API void __stdcall Init()
+LIBRARY_API void __stdcall Init(bool bDebug)
 {
 	//g_pSimpleFillTexture = new SimpleFillTexture(g_width, g_height,g_FOV);
-#ifdef _DEBUG
-	SetEnvironmentVariableA("NSIGHT_CUDA_DEBUGGER", "1");
-#endif
+	if( bDebug)
+		SetEnvironmentVariableA("NSIGHT_CUDA_DEBUGGER", "1");
 	g_pSimpleFillTexture = new CMandelbrotTextureFiller(g_width, g_height, g_FOV);
 }
 

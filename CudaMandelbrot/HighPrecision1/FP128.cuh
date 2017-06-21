@@ -17,6 +17,14 @@ __host__ __device__ inline constexpr uint32_t FloatToBin32(float f)
 	/*return temp.ui;*/
 }
 
+
+__host__ __device__ inline constexpr float Bin32ToFloat(uint32_t ui)
+{
+
+	return (UFUI32{ ui }).f;
+	/*return temp.ui;*/
+}
+
 typedef unsigned long long int uint64_t;
 typedef signed long long int int64_t;
 
@@ -140,22 +148,19 @@ __host__ __device__ inline CFixedPoint128::operator float() const
 	x >>= (127 - lz - 23);
 	unsigned char e = (127 - lz + 2);
 
-	float result;
-
-	uint32_t uiResult = FloatToBin32 (result);
-	uiResult = e << 23;
+	uint32_t uiResult = e << 23;
 	uiResult |= x.lolo & 0x007fffff; //cut off the msb (because float always begins with 1).
 	if (bNeg)
 		uiResult |= 0x80000000;
 
-	return result;
+	return Bin32ToFloat(uiResult);
 }
 __host__ __device__ inline CFixedPoint128::CFixedPoint128(const float d)
 {
 	/*assert(d < 4 && d >= -4);*/
 	// from wikipedia:
 	// (-1) ** b31  *  ( 1.b22b21b20...b0)_2  *  2 ** ((b30b29...b23)_2 - 127)
-	const uint32_t x = *(reinterpret_cast<const uint32_t*>(&d));
+	const uint32_t x = FloatToBin32(d);
 	uint32_t e = (x & 0x7f800000) >> 23;
 	uint32_t f = x & 0x007fffff;
 	uint32_t s = x >> 31;
