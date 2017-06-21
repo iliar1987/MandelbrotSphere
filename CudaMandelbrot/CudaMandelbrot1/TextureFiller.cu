@@ -74,9 +74,6 @@ void CTextureFiller::FillTexture(CTextureInfo& tex)
 
 void CTextureFiller::UpdateBuffer(const FrameParameters &params)
 {
-	dim3 Db = dim3(8, 8);   // block dimensions are fixed to be 256 threads
-	dim3 Dg = dim3((GetWidth() + Db.x - 1) / Db.x, (GetHeight() + Db.y - 1) / Db.y);
-
 	KernelParameters kParams;
 	kParams.tFrameParams = params;
 	kParams.width = GetWidth();

@@ -150,7 +150,7 @@ __host__ __device__ inline CFixedPoint128::CFixedPoint128(const float d)
 	uint32_t e = (x & 0x7f800000) >> 23;
 	uint32_t f = x & 0x007fffff;
 	uint32_t s = x >> 31;
-	lolo = f | 0x800000;
+	lolo = f | 0x00800000;
 	lohi = 0;
 	hi = 0;
 	int shft = (int)e + (-127 + 125 - 23);

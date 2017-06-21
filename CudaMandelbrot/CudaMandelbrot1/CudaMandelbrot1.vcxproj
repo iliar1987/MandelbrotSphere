@@ -119,7 +119,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);C:\Program Files\Unity\Editor\Data\PluginAPI;C:\source\cuda_samples\common\inc;$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);C:\Program Files\Unity\Editor\Data\PluginAPI;C:\source\cuda_samples\common\inc;C:\Users\Public\Documents\Unity Projects\Mandelbrot3\CudaMandelbrot\CudaMandelbrot1;$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D LIBRARY_EXPORTS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -144,7 +144,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);C:\Program Files\Unity\Editor\Data\PluginAPI;C:\source\cuda_samples\common\inc;$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);C:\Program Files\Unity\Editor\Data\PluginAPI;C:\source\cuda_samples\common\inc;C:\Users\Public\Documents\Unity Projects\Mandelbrot3\CudaMandelbrot\CudaMandelbrot1;$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D LIBRARY_EXPORTS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
