@@ -10,14 +10,14 @@
 
 #include "FP128.cuh"
 
-__global__ void mulKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b)
+__global__ void mulKernel(CFixedPoint128 *c, CFixedPoint128 *a, CFixedPoint128 *b)
 {
     int i = threadIdx.x;
 	c[i] = a[i] * b[i];
 }
 
 
-__global__ void shlKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b)
+__global__ void shlKernel(CFixedPoint128 *c, CFixedPoint128 *a, CFixedPoint128 *b)
 {
 	int i = threadIdx.x;
 	CFixedPoint128 temp = a[i];
@@ -25,7 +25,7 @@ __global__ void shlKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFix
 	c[i] = temp;
 }
 
-__global__ void shrKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b)
+__global__ void shrKernel(CFixedPoint128 *c, CFixedPoint128 *a, CFixedPoint128 *b)
 {
 	int i = threadIdx.x;
 	CFixedPoint128 temp = a[i];
@@ -33,7 +33,7 @@ __global__ void shrKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFix
 	c[i] = temp;
 }
 
-__global__ void divideByPow2Kernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b)
+__global__ void divideByPow2Kernel(CFixedPoint128 *c, CFixedPoint128 *a, CFixedPoint128 *b)
 {
 	int i = threadIdx.x;
 	CFixedPoint128 temp = a[i];
@@ -42,7 +42,7 @@ __global__ void divideByPow2Kernel(CFixedPoint128 *c, const CFixedPoint128 *a, c
 }
 
 
-__global__ void isNegKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b)
+__global__ void isNegKernel(CFixedPoint128 *c, CFixedPoint128 *a, CFixedPoint128 *b)
 {
 	int i = threadIdx.x;
 	c[i].hi = 0;
@@ -56,7 +56,7 @@ __global__ void isNegKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CF
 	}
 }
 
-__global__ void subtractKernel(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b)
+__global__ void subtractKernel(CFixedPoint128 *c, CFixedPoint128 *a, CFixedPoint128 *b)
 {
 	int i = threadIdx.x;
 
@@ -108,28 +108,40 @@ void TestFromFloat()
 	}
 }
 
+inline void HandleErrors(cudaError_t err)
+{
+	if (err == cudaSuccess)
+		return;
+	fprintf(stderr,"Error number %d", err);
+	exit(1);
+}
+
 void TestFromFloatGPU()
 {
 	printf("Testing From float and back conversion (GPU): \r\n");
-	float arr[] = { 0.25f,0.5f,1.0f,1.5f,1.25f,0.75f,-2.5f,-1.25f,-0.5f,-0.000000000123f,4123423e-30f,-1.0f,2.0f,-4.0f,0.0f };
+	float arr[] = { 0.523,-0.523,0.25f,0.5f,1.0f };
 	const int N = sizeof(arr) / sizeof(float);
 	float* d_arr;
 	float h_result[N];
 	CFixedPoint128* d_fp128;
 	CFixedPoint128 h_fp128[N];
 
-	cudaMalloc(&d_arr, N * sizeof(float));
-	cudaMemcpy(d_arr, arr, N * sizeof(float), cudaMemcpyKind::cudaMemcpyHostToDevice);
-	cudaMalloc(&d_fp128, sizeof(CFixedPoint128)*N);
+	cudaError_t cudaStatus;
+
+	HandleErrors(cudaMalloc(&d_arr, N * sizeof(float)));
+	HandleErrors(cudaMemcpy(d_arr, arr, N * sizeof(float), cudaMemcpyKind::cudaMemcpyHostToDevice));
+	HandleErrors(cudaMalloc(&d_fp128, sizeof(CFixedPoint128)*N));
 
 	FromFloatKernel <<< 1, N >>> (d_fp128, d_arr);
+	HandleErrors(cudaDeviceSynchronize());
 	ToFloatKernel << < 1, N >> > (d_arr, d_fp128);
+	HandleErrors(cudaDeviceSynchronize());
 	
-	cudaMemcpy(h_fp128, d_fp128, sizeof(CFixedPoint128) * N, cudaMemcpyKind::cudaMemcpyDeviceToHost);
-	cudaMemcpy(h_result, d_arr, sizeof(float) * N, cudaMemcpyKind::cudaMemcpyDeviceToHost);
+	HandleErrors(cudaMemcpy(h_fp128, d_fp128, sizeof(CFixedPoint128) * N, cudaMemcpyKind::cudaMemcpyDeviceToHost));
+	HandleErrors(cudaMemcpy(h_result, d_arr, sizeof(float) * N, cudaMemcpyKind::cudaMemcpyDeviceToHost));
 
-	cudaFree(d_arr);
-	cudaFree(d_fp128);
+	HandleErrors(cudaFree(d_arr));
+	HandleErrors(cudaFree(d_fp128));
 
 	for (int i = 0;i < N; ++i)
 	{
@@ -141,7 +153,7 @@ void TestFromFloatGPU()
 }
 
 cudaError_t TestComplex();
-typedef void CudaOp(CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b);
+typedef void CudaOp(CFixedPoint128 *c, CFixedPoint128 *a, CFixedPoint128 *b);
 
 cudaError_t PerformOpWithCuda(CudaOp* op, CFixedPoint128 *c, const CFixedPoint128 *a, const CFixedPoint128 *b, unsigned int size);
 
@@ -151,8 +163,8 @@ int main()
 	TestFromFloatGPU();
 
     const int arraySize = 3;
-	const CFixedPoint128 a[arraySize] = { {0x1010101010101010L,0x1010101010101010L },{1,0} ,{ 0x2020202020202020L,0x4020202020202020L } };
-	const CFixedPoint128 b[arraySize] = { { 0x3010101010101010L, 0x1010101010101010L },{ 1,0 } ,{ 0x2020202020202020L, 0x2020202020202020L } };
+	const CFixedPoint128 a[arraySize] = { (CFixedPoint128)-0.1f,(CFixedPoint128)0.2f,(CFixedPoint128)0.1f};
+	const CFixedPoint128 b[arraySize] = { (CFixedPoint128 )-0.3f,(CFixedPoint128 )-0.1f,(CFixedPoint128)0.1f};
 	CFixedPoint128 c[arraySize] = { {0,0},{1,1} };
 	cudaError_t cudaStatus;
 

@@ -8,21 +8,34 @@
 
 #include "CComplex.cuh"
 
-typedef union { float f;uint32_t ui; } UFUI32;
+union UFUI32 { 
+	float f;
+	uint32_t ui; 
+	//UFUI32(uint32_t x) : ui(x) {}
+	//UFUI32(float x) : f(x) {}
+};
 
-__host__ __device__ inline constexpr uint32_t FloatToBin32(float f)
+__host__ __device__ inline uint32_t FloatToBin32(float f)
 {
-
-	return (UFUI32{ f }).ui;
-	/*return temp.ui;*/
+#ifndef __CUDA_ARCH__
+	UFUI32 temp;
+	temp.f = f;
+	return temp.ui;
+#else
+	return __float_as_uint(f);
+#endif
 }
 
 
-__host__ __device__ inline constexpr float Bin32ToFloat(uint32_t ui)
+__host__ __device__ inline float Bin32ToFloat(uint32_t ui)
 {
-
-	return (UFUI32{ ui }).f;
-	/*return temp.ui;*/
+#ifndef __CUDA_ARCH__
+	UFUI32 temp;
+	temp.ui = ui;
+	return temp.f;
+#else
+	return __uint_as_float(ui);
+#endif
 }
 
 typedef unsigned long long int uint64_t;
@@ -60,14 +73,14 @@ public:
 	__host__ __device__ explicit CFixedPoint128(const float d);
 
 	//__device__ inline CFixedPoint128 operator * (const CFixedPoint128& other) const; //int128 multiplication with multiplication by 8 afterward (to keep place of point).
-	__device__ inline CFixedPoint128 operator * (const CFixedPoint128 &other) const;
+	__device__ inline CFixedPoint128 operator * (CFixedPoint128 &other);
 	__device__ inline CFixedPoint128 & operator += (const CFixedPoint128 &other);
 	__device__ inline CFixedPoint128 & operator -= (const CFixedPoint128 &other);
 
 	__device__ __host__ CFixedPoint128 & operator <<= (const unsigned int n); //in the sense of multiply by power of 2
 	__device__ __host__ CFixedPoint128 & operator >>= (const unsigned int n); //in the sense of divide by power of 2
 
-	__device__ inline CFixedPoint128 Sqr() const;
+	__device__ inline CFixedPoint128 Sqr();
 
 	__device__ __host__ void Negate(); //switch sign (2's complement)
 
@@ -98,10 +111,11 @@ std::ostream& operator << (std::ostream &o, const CFixedPoint128 &x)
 class CComplexFP128 : public CComplex<CFixedPoint128>
 {
 public:
-	__device__ __host__ CComplexFP128(const CComplex<CFixedPoint128>& other)
+	/*__device__ __host__ CComplexFP128(const CComplex<CFixedPoint128>& other)
 		: CComplex(other)
-	{}
+	{}*/
 	using CComplex::CComplex;
+	using CComplex::operator=;
 	//CComplexFP128() : CComplex() {}
 	__device__ __host__ bool OutsideRadius2() const
 	{
@@ -181,8 +195,20 @@ __host__ __device__ inline CFixedPoint128::CFixedPoint128(const float d)
 }
 
 
-__device__ inline CFixedPoint128 CFixedPoint128::operator * (const CFixedPoint128& other) const
+__device__ inline CFixedPoint128 CFixedPoint128::operator * (CFixedPoint128& other)
 {
+	bool b2IsNeg = other.IsNeg();
+	bool b1IsNeg = IsNeg();
+	if (b2IsNeg)
+	{
+		other.Negate();
+#ifdef _DEBUG
+		if (this == &other) //to avoid bad behavior
+			asm("brkpt;");
+#endif
+	}
+	if (b1IsNeg)
+		Negate();
 	CFixedPoint128 result;
 	uint64_t p1;
 	asm("{\n\t"
@@ -199,15 +225,30 @@ __device__ inline CFixedPoint128 CFixedPoint128::operator * (const CFixedPoint12
 		: "l"(lo), "l"(hi), "l"(other.lo), "l"(other.hi));
 
 	result<<= (3); // multiply by 8
-	result.lo |= (p1 << 61); //add lower 3 bits from p1.
+	result.lo |= (p1 >> 61); //add lower 3 bits from p1.
 
-	return *this;
+	if (b2IsNeg)
+		other.Negate();
+	if (b1IsNeg)
+		Negate();
+
+	if (b1IsNeg != b2IsNeg)
+		result.Negate();
+	//return *this;
+	return result;
 }
 
-__device__ inline CFixedPoint128 CFixedPoint128::Sqr() const
+__device__ inline CFixedPoint128 CFixedPoint128::Sqr()
 {
 	//TODO: make something more efficient
+	bool bNeg = IsNeg();
+	if (bNeg)
+	{
+		Negate();
+	}
 	CFixedPoint128 result = (*this) * (*this);
+	if (bNeg)
+		Negate();
 	return result;
 }
 

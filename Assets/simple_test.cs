@@ -14,6 +14,12 @@ public class simple_test : MonoBehaviour {
 	[DllImport ("CudaMandelbrot1")]
 	private static extern void MakeCalculation (float[] vCamRight,float[] vCamUp,float[] vCamForward, float t, float rho);
 
+	[DllImport ("CudaMandelbrot1")]
+	private static extern void Init (bool bDebug);
+
+	[DllImport ("CudaMandelbrot1")]
+	private static extern void Shutdown ();
+
 	int width = 1920;
 	int height = 1080;
 
@@ -24,8 +30,6 @@ public class simple_test : MonoBehaviour {
 //		m_tex = new RenderTexture (width, height, 0, RenderTextureFormat.ARGBFloat);
 //		m_tex.enableRandomWrite = true;
 //		m_tex.Create ();
-
-
 
 		//gameObject.GetComponent<MeshRenderer>().material.SetTexture("_MainTex",m_tex);
 	}
@@ -54,7 +58,7 @@ public class simple_test : MonoBehaviour {
 		t += Time.deltaTime;
 		if (bFirstFrame) {
 			bFirstFrame = false;
-
+			Init(false);
 			m_tex = new Texture2D (width, height, TextureFormat.RFloat, false, false);
 
 			IntPtr pTexPtr = m_tex.GetNativeTexturePtr ();
@@ -62,9 +66,16 @@ public class simple_test : MonoBehaviour {
 
 
 			GameObject.Find ("ScreenSpaceQuad").GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex",m_tex);
+
+
 		}
 		//q = quatRot;
 		MakeCalculation (Vec2Arr(transform.right),Vec2Arr(transform.up),Vec2Arr(transform.forward),t,rho);
 		FillTexture (0);
+	}
+
+	void OnApplicationQuit()
+	{
+		Shutdown ();
 	}
 }

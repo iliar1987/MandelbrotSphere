@@ -16,6 +16,12 @@ public:
 	Real x, y;
 	__device__ __host__ CComplex() {}
 
+	__device__ __host__ CComplex& operator = (const CComplex& other)
+	{
+		x = other.x;
+		y = other.y;
+	}
+
 	__device__ __host__ CComplex(const Real &rx, const Real &ry) : x(rx), y(ry)
 	{}
 
@@ -49,7 +55,7 @@ public:
 		return *this;
 	}
 
-	__device__ CComplex operator * (const CComplex& b) const
+	__device__ CComplex operator * (CComplex& b)
 	{
 		CComplex result;
 
@@ -67,9 +73,17 @@ public:
 		return CComplex(x * r, y * r);
 	}*/
 
-	__device__  CComplex Sqr() const
+	__device__  CComplex Sqr()
 	{
-		return (*this) * (*this);
+		//return (*this) * (*this);
+		CComplex result;
+		result.x = x.Sqr();
+		result.x -= y.Sqr();
+
+		result.y = x*y;
+		result.y <<= 1;
+		
+		return result;
 	}
 };
 

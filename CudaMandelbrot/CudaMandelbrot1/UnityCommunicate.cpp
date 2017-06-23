@@ -54,6 +54,7 @@ LIBRARY_API void __stdcall Shutdown()
 	{
 		delete x.second;
 	}
+	g_mapTextures.clear();
 	
 	delete g_pSimpleFillTexture;
 	g_pSimpleFillTexture = nullptr;
@@ -94,14 +95,12 @@ OnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType)
 	{
 	case kUnityGfxDeviceEventInitialize:
 	{
-		Init();
 		//TODO: user initialization code
 		break;
 	}
 	case kUnityGfxDeviceEventShutdown:
 	{
 		g_RendererType = kUnityGfxRendererNull;
-		Shutdown();
 		//TODO: user shutdown code
 		break;
 	}
