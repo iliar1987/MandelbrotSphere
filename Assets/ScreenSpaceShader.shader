@@ -3,6 +3,7 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
+		_NIterations ("Number of Iterations",Int) = 50
 	}
 	SubShader
 	{
@@ -20,6 +21,8 @@
 			// make fog work
 
 			#include "UnityCG.cginc"
+
+			int _NIterations;
 
 			float3 HUEtoRGB(in float H)
 			{
@@ -50,8 +53,10 @@
 			fixed4 frag (v2f i) : SV_Target
 			{
 				float x = tex2D(_MainTex, i.uv).x;
-
-				return fixed4(HUEtoRGB(frac(abs(x)/20)),1);
+				if ( x >= _NIterations )
+					return fixed4(0,0,0,1);
+				else
+					return fixed4(HUEtoRGB(frac(abs(x)/20)),1);
 
 //				x = frac(x/4.134534); //just some number.
 //				return fixed4(HUEtoRGB(x),1);

@@ -36,8 +36,8 @@ CMandelbrotTextureFiller* g_pSimpleFillTexture = nullptr;
 
 std::map<int, CTextureInfo*> g_mapTextures;
 
-int g_width = 1920;
-int g_height = 1080;
+int g_width = 1024;
+int g_height = 768;
 float g_FOV = 60.0f * PIf / 180.0f;
 
 LIBRARY_API void __stdcall Init(bool bDebug)
@@ -65,7 +65,7 @@ LIBRARY_API void __stdcall FillTexture(int nTexNum)
 	g_pSimpleFillTexture->FillTexture(* g_mapTextures[nTexNum]);
 }
 
-LIBRARY_API void __stdcall MakeCalculation(float vCamRight[3], float vCamUp[3], float vCamForward[3],float t,float rho)
+LIBRARY_API void __stdcall MakeCalculation(float vCamRight[3], float vCamUp[3], float vCamForward[3],float t,float rho, int nIterations)
 {
 	CTextureFiller::FrameParameters params;
 	params.t = t;
@@ -73,6 +73,7 @@ LIBRARY_API void __stdcall MakeCalculation(float vCamRight[3], float vCamUp[3], 
 	params.vCamRight = ARR_AS_FLOAT3(vCamRight);
 	params.vCamUp = ARR_AS_FLOAT3(vCamUp);
 	params.rho = rho;
+	params.nIterations = nIterations;
 	g_pSimpleFillTexture->UpdateBuffer(params);
 }
 
@@ -91,9 +92,9 @@ LIBRARY_API void __stdcall PoleCoordsSet(float x, float y)
 	g_pSimpleFillTexture->PoleCoordsSet(x, y);
 }
 
-LIBRARY_API void __stdcall PoleCoordsZoom(float theta, float phi, float rho, float rho_new)
+LIBRARY_API void __stdcall PoleCoordsZoom(float vCamForward[3], float rho, float rho_new)
 {
-	g_pSimpleFillTexture->PoleCoordsZoom(theta, phi, rho, rho_new);
+	g_pSimpleFillTexture->PoleCoordsZoom(ARR_AS_FLOAT3(vCamForward), rho, rho_new);
 }
 
 

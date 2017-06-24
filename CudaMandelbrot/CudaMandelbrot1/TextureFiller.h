@@ -29,6 +29,7 @@ public:
 		float3 vCamForward;
 		float t;
 		float rho;
+		int nIterations;
 	};
 	struct KernelParameters
 	{

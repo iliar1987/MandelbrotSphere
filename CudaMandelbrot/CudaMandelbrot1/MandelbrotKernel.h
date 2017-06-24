@@ -26,6 +26,6 @@ public:
 
 	void PoleCoordsSet(float x, float y);
 
-	void PoleCoordsZoom(float theta, float phi, float rho, float rho_new);
+	void PoleCoordsZoom(float3 vCamForward, float rho, float rho_new);
 
 };

@@ -48,7 +48,7 @@ __global__ void kernMandelbrot(float* buffer, CTextureFiller::KernelParameters p
 		c.y += yPole;
 		CComplexFP128 z(c);
 		int i = 0;
-		while (i < 20 && !z.OutsideRadius2())
+		while (i < params.tFrameParams.nIterations && !z.OutsideRadius2())
 		{
 			z=z.Sqr();
 			z += c;
@@ -107,9 +107,14 @@ void CMandelbrotTextureFiller::PoleCoordsSet(float x, float y)
 	*m_poleCoords.y = CFixedPoint128(y);
 }
 
-void CMandelbrotTextureFiller::PoleCoordsZoom(float theta, float phi, float rho, float rho_new)
+void CMandelbrotTextureFiller::PoleCoordsZoom(float3 vForward, float rho, float rho_new)
 {
+	float temp = sqrtf(vForward.x * vForward.x + vForward.y * vForward.y);
+	float theta = atan2f(temp, vForward.z);
+	float phi = atan2f(vForward.y, vForward.x);
+
 	float rho_delta = rho_new - rho;
+
 	float dr = 2 * rho_delta * tanf(theta / 2);
 	float dx = dr * cosf(phi);
 	float dy = dr * sinf(phi);
