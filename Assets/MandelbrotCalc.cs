@@ -1,28 +1,93 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System;
 using UnityEngine;
-using UnityEngine.Assertions;
 
-public class FractalZoomer : MonoBehaviour {
+public class MandelbrotCalc : MonoBehaviour {
+	[DllImport ("CudaMandelbrot1")]
+	private static extern void FillTexture(int nTexNum);
 
-	Vector3 m_vecPos;
-	Quaternion m_initialRotation;
-	// Use this for initialization
+	[DllImport ("CudaMandelbrot1")]
+	private static extern void SetTexture(IntPtr pTex,int nTexNum);
 
+	[DllImport ("CudaMandelbrot1")]
+	private static extern void MakeCalculation (float[] vCamRight,float[] vCamUp,float[] vCamForward, float t, float rho);
+
+	[DllImport ("CudaMandelbrot1")]
+	private static extern void Init (bool bDebug);
+
+	[DllImport ("CudaMandelbrot1")]
+	private static extern void Shutdown ();
+
+	[DllImport ("CudaMandelbrot1")]
+	private static extern void PoleCoordsGet(out float x, out float y);
+
+	[DllImport ("CudaMandelbrot1")]
+	private static extern void PoleCoordsAdd(float dx, float dy);
+
+	[DllImport ("CudaMandelbrot1")]
+	private static extern void PoleCoordsSet(float x, float y);
+
+	int width = 1920;
+	int height = 1080;
 	const double PI = 3.14159265358979323846264338327950288419716939937510;
 
-	public float m_fSpeed = 1.0f;
-	public double m_fRCoeff = 0.001;
-	private Vector2d m_pole = new Vector2d(0,0);
-	float m_nIterations = 50;
-	public float m_fNIterationsGrowSpeed=0.3f;
-	public Vector3 m_vecInitialPos = new Vector3 (0, 0, 10);
-	public float m_fR0 = 2;
+	public float m_fZoomSpeed = 1.0f;
+	public float m_fRho;
+	float m_fRhoInit = 1.0f;
 
-	double m_R
+	public float m_nIterations;
+	float m_nIterationsInit = 50;
+	public float m_fNIterationsGrowSpeed=1.01f;
+
+	float t = 0;
+
+	//private RenderTexture m_tex;
+	private Texture2D m_tex;
+	// Use this for initialization
+	void Start () {
+		m_fRho = m_fRhoInit;
+
+		m_nIterations = m_nIterationsInit;
+	}
+
+	float[] Vec2Arr(Vector3 v)
 	{
-		get { return Math.Exp (m_fR0 - m_vecPos.magnitude * m_fRCoeff);}
+		float[] arr = new float[3];
+		arr [0] = v.x;
+		arr [1] = v.y;
+		arr [2] = v.z;
+		return arr;
+	}
+
+	bool bFirstFrame = true;
+
+	//public Quaternion q;
+	void OnPreCull()
+	{
+		t += Time.deltaTime;
+		if (bFirstFrame) {
+			bFirstFrame = false;
+			Init(false);
+			m_tex = new Texture2D (width, height, TextureFormat.RFloat, false, false);
+
+			IntPtr pTexPtr = m_tex.GetNativeTexturePtr ();
+			SetTexture (pTexPtr,0);
+
+
+			GameObject.Find ("ScreenSpaceQuad").GetComponent<MeshRenderer> ().material.SetTexture ("_MainTex",m_tex);
+
+
+		}
+		//q = quatRot;
+		MakeCalculation (Vec2Arr(transform.right),Vec2Arr(transform.up),Vec2Arr(transform.forward),t,m_fRho);
+		FillTexture (0);
+	}
+
+	void OnApplicationQuit()
+	{
+		Shutdown ();
 	}
 
 	void TransformSphere()
@@ -65,21 +130,6 @@ public class FractalZoomer : MonoBehaviour {
 		gameObject.GetComponent<MeshRenderer> ().material.SetInt ("_NIterations", (int)m_nIterations);
 	}
 
-	void Start () {
-		m_vecPos = m_vecInitialPos;
-		m_initialRotation = gameObject.transform.rotation;
-		UpdateShaderSphereProjectionParams ();
-		SetNumIterations ();
-		//TransformSphere ();
-	}
-
-	void UpdateShaderSphereProjectionParams ()
-	{
-		gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_xp", (float)m_pole.x);
-		gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_yp", (float)m_pole.y);
-		gameObject.GetComponent<MeshRenderer> ().material.SetFloat ("_R", (float)m_R);
-	}
-
 	void ModifyVecPos(Vector3 vDelta,Vector3 vOrigin,Vector3 vRayKeepConst)
 	{
 
@@ -95,9 +145,9 @@ public class FractalZoomer : MonoBehaviour {
 
 		UpdateShaderSphereProjectionParams ();
 	}
-		
+
 	void Update () {
-		
+
 		float fForward = Input.GetAxis("Vertical");
 		Transform tCam = Camera.main.transform;
 

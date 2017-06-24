@@ -74,7 +74,7 @@ public:
 
 	//__device__ inline CFixedPoint128 operator * (const CFixedPoint128& other) const; //int128 multiplication with multiplication by 8 afterward (to keep place of point).
 	__device__ inline CFixedPoint128 operator * (CFixedPoint128 &other);
-	__device__ inline CFixedPoint128 & operator += (const CFixedPoint128 &other);
+	__device__ __host__ inline CFixedPoint128 & operator += (const CFixedPoint128 &other);
 	__device__ inline CFixedPoint128 & operator -= (const CFixedPoint128 &other);
 
 	__device__ __host__ CFixedPoint128 & operator <<= (const unsigned int n); //in the sense of multiply by power of 2
@@ -253,12 +253,17 @@ __device__ inline CFixedPoint128 CFixedPoint128::Sqr()
 }
 
 
-__device__ inline CFixedPoint128 & CFixedPoint128::operator += (const CFixedPoint128 &other)
+__device__ __host__ inline CFixedPoint128 & CFixedPoint128::operator += (const CFixedPoint128 &other)
 {
+#ifdef __CUDA_ARCH__
 	asm("{\n\t"
 		"add.cc.u64 %0, %0, %2 ;\n\t"
 		"addc.u64 %1, %1, %3   ;\n\t"
 		"}" : "+l"(lo), "+l"(hi) : "l"(other.lo), "l"(other.hi));
+#else
+	unsigned char c = _addcarry_u64(0, lo, other.lo, &lo);
+	_addcarry_u64(c, hi, other.hi, &hi);
+#endif
 	return *this;
 }
 

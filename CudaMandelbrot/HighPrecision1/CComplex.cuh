@@ -20,6 +20,7 @@ public:
 	{
 		x = other.x;
 		y = other.y;
+		return *this;
 	}
 
 	__device__ __host__ CComplex(const Real &rx, const Real &ry) : x(rx), y(ry)

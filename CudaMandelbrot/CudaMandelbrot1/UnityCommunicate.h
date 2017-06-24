@@ -15,3 +15,10 @@ LIBRARY_API void __stdcall Init(bool bDebug);
 
 LIBRARY_API void __stdcall Shutdown();
 
+LIBRARY_API void __stdcall PoleCoordsGet(float* x, float *y);
+
+LIBRARY_API void __stdcall PoleCoordsAdd(float dx, float dy);
+
+LIBRARY_API void __stdcall PoleCoordsSet(float x, float y);
+
+LIBRARY_API void __stdcall PoleCoordsZoom(float theta,float phi, float rho,float rho_new);

@@ -32,7 +32,7 @@ ID3D11Device* g_Device=NULL;
 IUnityGraphics* g_Graphics = NULL;
 UnityGfxRenderer g_RendererType = kUnityGfxRendererNull;
 
-CTextureFiller* g_pSimpleFillTexture = nullptr;
+CMandelbrotTextureFiller* g_pSimpleFillTexture = nullptr;
 
 std::map<int, CTextureInfo*> g_mapTextures;
 
@@ -75,6 +75,27 @@ LIBRARY_API void __stdcall MakeCalculation(float vCamRight[3], float vCamUp[3], 
 	params.rho = rho;
 	g_pSimpleFillTexture->UpdateBuffer(params);
 }
+
+LIBRARY_API void __stdcall PoleCoordsGet(float* x, float *y)
+{
+	g_pSimpleFillTexture->PoleCoordsGet(*x, *y);
+}
+
+LIBRARY_API void __stdcall PoleCoordsAdd(float dx, float dy)
+{
+	g_pSimpleFillTexture->PoleCoordsAdd(dx,dy);
+}
+
+LIBRARY_API void __stdcall PoleCoordsSet(float x, float y)
+{
+	g_pSimpleFillTexture->PoleCoordsSet(x, y);
+}
+
+LIBRARY_API void __stdcall PoleCoordsZoom(float theta, float phi, float rho, float rho_new)
+{
+	g_pSimpleFillTexture->PoleCoordsZoom(theta, phi, rho, rho_new);
+}
+
 
 //
 //LIBRARY_API void* __stdcall GetTexture()
