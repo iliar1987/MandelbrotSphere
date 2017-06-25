@@ -24,12 +24,18 @@
 
 			int _NIterations;
 
-			float3 HUEtoRGB(in float H)
+			float3 Hue2RGB(in float H)
 			{
 				float R = abs(H * 6 - 3) - 1;
 				float G = 2 - abs(H * 6 - 2);
 				float B = 2 - abs(H * 6 - 4);
 				return saturate(float3(R,G,B));
+			}
+
+			float3 HSV2RGB(in float3 HSV)
+			{
+			    float3 RGB = Hue2RGB(HSV.x);
+			    return ((RGB - 1) * HSV.y + 1) * HSV.z;
 			}
 
 			struct v2f
@@ -56,7 +62,7 @@
 				if ( x >= _NIterations )
 					return fixed4(0,0,0,1);
 				else
-					return fixed4(HUEtoRGB(frac(abs(x)/20)),1);
+					return fixed4(HSV2RGB(float3(frac(abs(x)/100),0.5*(1+frac(abs(x)/5)),1)),1);
 
 //				x = frac(x/4.134534); //just some number.
 //				return fixed4(HUEtoRGB(x),1);
