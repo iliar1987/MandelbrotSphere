@@ -8,11 +8,13 @@ public class cameraJoystick : MonoBehaviour {
 	void Start () {
 		
 	}
-	
+
+    public float fRotSpeed = 100;
+
 	// Update is called once per frame
 	void Update () {
-		float rotx = Input.GetAxis ("CamRotUp");
-		float roty = Input.GetAxis ("CamRotLeft");
+		float rotx = Input.GetAxis ("CamRotUp") * Time.deltaTime*fRotSpeed;
+		float roty = Input.GetAxis ("CamRotLeft") * Time.deltaTime * fRotSpeed;
 		if (rotx != 0 || roty != 0) {
 			gameObject.transform.Rotate (new Vector3 (rotx, roty, 0));
 		}

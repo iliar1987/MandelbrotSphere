@@ -49,13 +49,13 @@ public class MandelbrotCalc : MonoBehaviour {
 	int height = 768;
 	const double PI = 3.14159265358979323846264338327950288419716939937510;
 
-	public float m_fZoomSpeed = 1.01f;
+	public float m_fZoomSpeed = 1.5f;
 	public float m_fRho;
 	float m_fRhoInit = 1.0f;
 
 	public float m_nIterations;
 	float m_nIterationsInit = 50;
-	public float m_fNIterationsGrowSpeed=1.01f;
+	public float m_fNIterationsGrowSpeed=1.5f;
 
 	float t = 0;
 
@@ -128,7 +128,7 @@ public class MandelbrotCalc : MonoBehaviour {
 		Transform tCam = Camera.main.transform;
 
 		if (fForward != 0) {
-			float fFactor = Mathf.Pow (m_fZoomSpeed, -fForward);
+			float fFactor = Mathf.Pow (m_fZoomSpeed, -fForward * Time.deltaTime);
 			float fOldRho = m_fRho;
 			m_fRho *= fFactor;
 			PoleCoordsZoom(Vec2Arr(transform.forward), fOldRho, m_fRho);
@@ -142,7 +142,7 @@ public class MandelbrotCalc : MonoBehaviour {
 //		}
 		float fTrigger = Input.GetAxis ("Trigger");
 		if (fTrigger != 0) {
-			float fFactor = Mathf.Pow (m_fNIterationsGrowSpeed, fTrigger);
+			float fFactor = Mathf.Pow (m_fNIterationsGrowSpeed, fTrigger * Time.deltaTime);
 			m_nIterations *= fFactor;
 			UpdateShaderNumIterations ();
 		}
