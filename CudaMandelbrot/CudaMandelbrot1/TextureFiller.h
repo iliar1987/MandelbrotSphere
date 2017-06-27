@@ -10,9 +10,6 @@ private:
 	const int m_height;
 	const float m_fL;
 	size_t m_pitch;
-	int GetWidth() const { return m_width; }
-	int GetHeight() const { return m_height; }
-	size_t GetPitch() const { return m_pitch; }
 public:
 	struct KernelParameters;
 private:
@@ -41,6 +38,9 @@ public:
 	};
 public:
 
+	int GetWidth() const { return m_width; }
+	int GetHeight() const { return m_height; }
+	size_t GetPitch() const { return m_pitch; }
 
 	CTextureFiller(int width, int height, float FOV);
 	CTextureFiller(const CTextureFiller&) = delete;

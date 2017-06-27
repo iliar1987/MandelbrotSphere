@@ -36,16 +36,13 @@ CMandelbrotTextureFiller* g_pSimpleFillTexture = nullptr;
 
 std::map<int, CTextureInfo*> g_mapTextures;
 
-int g_width = 1024;
-int g_height = 768;
-float g_FOV = 60.0f * PIf / 180.0f;
 
-LIBRARY_API void __stdcall Init(bool bDebug)
+LIBRARY_API void __stdcall Init(bool bDebug,int width,int height,float FOV)
 {
-	//g_pSimpleFillTexture = new SimpleFillTexture(g_width, g_height,g_FOV);
+	//g_pSimpleFillTexture = new SimpleFillTexture(width, height,FOV);
 	if( bDebug)
 		SetEnvironmentVariableA("NSIGHT_CUDA_DEBUGGER", "1");
-	g_pSimpleFillTexture = new CMandelbrotTextureFiller(g_width, g_height, g_FOV);
+	g_pSimpleFillTexture = new CMandelbrotTextureFiller(width, height, FOV);
 }
 
 LIBRARY_API void __stdcall Shutdown()
@@ -107,7 +104,8 @@ LIBRARY_API void __stdcall PoleCoordsZoom(float vCamForward[3], float rho, float
 
 LIBRARY_API void __stdcall SetTexture(void* pTex,int nTexNum)
 {
-	g_mapTextures[nTexNum] = new CTextureInfo(g_width, g_height, g_Device, (ID3D11Texture2D*)pTex,sizeof(float));
+	
+	g_mapTextures[nTexNum] = new CTextureInfo(g_pSimpleFillTexture->GetWidth(), g_pSimpleFillTexture->GetHeight(), g_Device, (ID3D11Texture2D*)pTex,sizeof(float));
 }
 
 static void UNITY_INTERFACE_API
