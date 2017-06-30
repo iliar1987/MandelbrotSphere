@@ -55,6 +55,42 @@
 
 				return o;
 			}
+
+			fixed3 cmap1(float x)
+			{
+				float logx = log(x+1);
+				float loglogx = log(logx+1);
+				return HSV2RGB(float3(
+					frac(loglogx),
+					1,//0.7f+0.3f*sin(2*(logx)),
+					0.7f+0.3f*pow(cos(2*(logx)),3)));
+			}
+			fixed3 cmap2(float x)
+			{
+				return HSV2RGB(float3(frac(abs(x)/100),frac(abs(x)/5),1));
+			}
+
+			fixed3 cmap3(float x)
+			{
+				return fixed3(0.5f+0.5f*cos(x),0.5f+0.5f*sin(x),frac(x*5));
+			}
+
+			fixed3 cmap4(float x)
+			{
+				return 
+					0.5f+0.5f 
+						* sin(float3(
+							1.57079632f-log(x+1)/10
+							,log(x+1)
+							,x/50));
+
+			}
+
+			fixed3 cmap5(float x)
+			{
+				return 0.5f+0.5f * sin(float3(x/1000+3.14159265358,x/500+1.57079632f,x/100));
+
+			}
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
@@ -62,12 +98,9 @@
 				if ( x >= _NIterations )
 					return fixed4(0,0,0,1);
 				else
-					return fixed4(HSV2RGB(float3(frac(abs(x)/100),0.5*(1+frac(abs(x)/5)),1)),1);
-
-//				x = frac(x/4.134534); //just some number.
-//				return fixed4(HUEtoRGB(x),1);
-				//x/=(2.0f*3.1415926f);
-				//return fixed4(x,x,x,1);
+				{
+					return fixed4(cmap4(x),1);
+				}
 			}
 			ENDCG
 		}
