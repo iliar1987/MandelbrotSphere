@@ -55,19 +55,24 @@ __global__ void kernMandelbrot(float* buffer, CTextureFiller::KernelParameters p
 		CComplexFP128 z(c);
 		int i = 0;
 
-		while (i < params.tFrameParams.nIterations )
+		while (i < params.tFrameParams.nIterations
+			&& !((z.x.hihi & 0x80000000) >> 1 != z.x.hihi & 0x40000000)
+			&& !((z.y.hihi & 0x80000000) >> 1 != z.y.hihi & 0x40000000) )
 		{
 			CFixedPoint128 z_x_sqr = z.x.Sqr();
 			CFixedPoint128 z_y_sqr = z.y.Sqr();
 
-			if ((z_x_sqr.hihi + z_y_sqr.hihi) & 0x80000000)
+			CFixedPoint128 sumOfSquares(z_x_sqr);
+			sumOfSquares += z_y_sqr;
+			if (sumOfSquares.IsNeg())
 				break;
 
 			z.y = z.x * z.y;
 			z.y <<= 1;
 
 			z.x = z_x_sqr;
-			z.x -= z_y_sqr;
+			z_y_sqr.Negate();
+			z.x = z_y_sqr;
 
 			z += c;
 			++i;
