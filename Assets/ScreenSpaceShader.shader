@@ -88,7 +88,16 @@
 
 			fixed3 cmap5(float x)
 			{
-				return 0.5f+0.5f * sin(float3(x/1000+3.14159265358,x/500+1.57079632f,x/100));
+				return 0.5f+0.5f * sin(float3(x/500+3.14159265358,x/200+1.57079632f,x/20));
+
+			}
+
+			fixed3 cmap6(float x)
+			{
+				return HSV2RGB(float3(
+					frac(x/211),
+					1,//0.7f+0.3f*sin(2*(logx)),
+					0.7f+0.3f*(sin(x/34))));
 
 			}
 			
@@ -99,7 +108,7 @@
 					return fixed4(0,0,0,1);
 				else
 				{
-					return fixed4(cmap4(x),1);
+					return fixed4(cmap6(x),1);
 				}
 			}
 			ENDCG
