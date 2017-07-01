@@ -20,7 +20,7 @@ __global__ void kernSpherical(float* buffer, CTextureFiller::KernelParameters pa
 	float *pixel = buffer + (y * params.width + x);
 
 	float theta, phi;
-	GetThetaPhi(theta, phi, x, y, params);
+	GetThetaPhiSpherical(theta, phi, x, y, params);
 
 	*pixel = pow(sin(theta), 3) * (cosf(3.0f*(phi + params.tFrameParams.t))) * 0.5f + 0.5f;
 }

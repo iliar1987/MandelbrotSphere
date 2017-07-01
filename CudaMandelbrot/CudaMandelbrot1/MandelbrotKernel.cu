@@ -12,6 +12,12 @@
 
 #include "../HighPrecision1/FP128.cuh"
 
+#define OUT
+#define IN
+
+typedef void(Func_GetThetaPhi)(OUT float&, OUT float&, int, int, const CTextureFiller::KernelParameters&);
+
+template<Func_GetThetaPhi GetThetaPhi>
 __global__ void kernMandelbrot(float* buffer, CTextureFiller::KernelParameters params,CFixedPoint128 xPole,CFixedPoint128 yPole)
 {
 	const int x = blockIdx.x*blockDim.x + threadIdx.x;
@@ -72,7 +78,7 @@ void CMandelbrotTextureFiller::LaunchKernel(const KernelParameters& params)
 	dim3 Db = dim3(8, 8);   // block dimensions are fixed to be 256 threads
 	dim3 Dg = dim3((params.width + Db.x - 1) / Db.x, (params.height + Db.y - 1) / Db.y);
 
-	kernMandelbrot <<< Dg, Db >>> (GetBuffer(), params,*m_poleCoords.x,*m_poleCoords.y);
+	kernMandelbrot<GetThetaPhiSpherical> <<< Dg, Db >>> (GetBuffer(), params,*m_poleCoords.x,*m_poleCoords.y);
 }
 
 CMandelbrotTextureFiller::CMandelbrotTextureFiller(int width, int height, float FOV)

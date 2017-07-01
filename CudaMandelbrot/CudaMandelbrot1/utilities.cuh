@@ -66,7 +66,7 @@ __host__ __device__ inline float3 operator + (float3 u, float3 v)
 }
 
 
-__device__ inline void GetThetaPhi(float& theta, float &phi, const int x, const int y, const CTextureFiller::KernelParameters &params)
+__device__ inline void GetThetaPhiSpherical(float& theta, float &phi, const int x, const int y, const CTextureFiller::KernelParameters &params)
 {
 	float3 posCamera = (float)(x - params.width / 2) * params.tFrameParams.vCamRight + (float)(y - params.height / 2) * params.tFrameParams.vCamUp + params.tFrameParams.vCamForward * (float)params.L;
 
