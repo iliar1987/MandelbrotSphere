@@ -38,55 +38,36 @@ __global__ void kernMandelbrot(float* buffer, CTextureFiller::KernelParameters p
 	float R = params.tFrameParams.rho * tanf( theta / 2.0f) * 2.0f;
 	float fX = R*cosf(phi);
 	float fY = R*sinf(phi);
-	//*pixel = sqrtf(fY*fY + fX*fX);
-	//*pixel = theta / PIf;
-	//*pixel = powf(sin(theta), 3) * (cosf(3.0f*(phi + params.tFrameParams.t))) * 0.5f + 0.5f;
 
+	CComplexFP128 c(fX, fY);
+	c.x += xPole;
+	c.y += yPole;
+	CComplexFP128 z(c);
+	int i = 0;
 
-	if (fX*fX + fY*fY >= 4.0f)
+	while (i < params.tFrameParams.nIterations
+		&& !(((z.x.hihi & 0x80000000) >> 1) != (z.x.hihi & 0x40000000))
+		&& !(((z.y.hihi & 0x80000000) >> 1) != (z.y.hihi & 0x40000000)) )
 	{
-		*pixel = 0.0f;
+		CFixedPoint128 z_x_sqr = z.x.Sqr();
+		CFixedPoint128 z_y_sqr = z.y.Sqr();
+
+		CFixedPoint128 sumOfSquares(z_x_sqr);
+		sumOfSquares += z_y_sqr;
+		if (sumOfSquares.IsNeg())
+			break;
+
+		z.y = z.x * z.y;
+		z.y <<= 1;
+
+		z.x = z_x_sqr;
+		z.x -= z_y_sqr;
+
+		z += c;
+		++i;
 	}
-	else
-	{
-		CComplexFP128 c(fX, fY);
-		c.x += xPole;
-		c.y += yPole;
-		CComplexFP128 z(c);
-		int i = 0;
+	*pixel = (float)i;
 
-		while (i < params.tFrameParams.nIterations
-			&& !((z.x.hihi & 0x80000000) >> 1 != z.x.hihi & 0x40000000)
-			&& !((z.y.hihi & 0x80000000) >> 1 != z.y.hihi & 0x40000000) )
-		{
-			CFixedPoint128 z_x_sqr = z.x.Sqr();
-			CFixedPoint128 z_y_sqr = z.y.Sqr();
-
-			CFixedPoint128 sumOfSquares(z_x_sqr);
-			sumOfSquares += z_y_sqr;
-			if (sumOfSquares.IsNeg())
-				break;
-
-			z.y = z.x * z.y;
-			z.y <<= 1;
-
-			z.x = z_x_sqr;
-			z_y_sqr.Negate();
-			z.x = z_y_sqr;
-
-			z += c;
-			++i;
-		}
-		*pixel = (float)i;
-
-		//z = z.Sqr();
-		
-		//float fa = (float)(z.x);
-		//float fb = (float)(z.y);
-		////*pixel = fa*fa + fb*fb;
-		////z.Sqr();
-		//*pixel = atan2f((float)z.y, (float)z.x);
-	}
 	
 }
 
