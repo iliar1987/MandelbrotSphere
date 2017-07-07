@@ -32,7 +32,7 @@ ID3D11Device* g_Device=NULL;
 IUnityGraphics* g_Graphics = NULL;
 UnityGfxRenderer g_RendererType = kUnityGfxRendererNull;
 
-CMandelbrotTextureFiller* g_pSimpleFillTexture = nullptr;
+CComplexIterationTextureFiller* g_pSimpleFillTexture = nullptr;
 
 std::map<int, CTextureInfo*> g_mapTextures;
 
@@ -42,7 +42,7 @@ LIBRARY_API void __stdcall Init(bool bDebug,int width,int height,float FOV)
 	//g_pSimpleFillTexture = new SimpleFillTexture(width, height,FOV);
 	if( bDebug)
 		SetEnvironmentVariableA("NSIGHT_CUDA_DEBUGGER", "1");
-	g_pSimpleFillTexture = new CMandelbrotTextureFiller(width, height, FOV);
+	g_pSimpleFillTexture = new CComplexIterationTextureFiller(width, height, FOV);
 }
 
 LIBRARY_API void __stdcall Shutdown()

@@ -164,6 +164,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BurningShipKernel.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="ExportFunctions.h" />
     <ClInclude Include="MandelbrotKernel.h" />
@@ -178,6 +179,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="UnityCommunicate.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="BruningShipKernel.cu" />
     <CudaCompile Include="MandelbrotKernel.cu" />
     <CudaCompile Include="SimpleFillTexture.cu" />
     <CudaCompile Include="TextureFiller.cu" />

@@ -12,13 +12,13 @@
 
 #include "../HighPrecision1/FP128.cuh"
 
-#define OUT
-#define IN
+__device__ bool IterateMandelbrot(IN OUT CFixedPoint128& x, IN OUT CFixedPoint128 &y)
+{
+	return false;
+}
 
-typedef void(Func_GetThetaPhi)(OUT float&, OUT float&, int, int, const CTextureFiller::KernelParameters&);
-
-template<Func_GetThetaPhi GetThetaPhi>
-__global__ void kernMandelbrot(float* buffer, CTextureFiller::KernelParameters params,CFixedPoint128 xPole,CFixedPoint128 yPole)
+template<Func_GetThetaPhi GetThetaPhi,Func_Iterate funcIterate>
+__global__ void kernComplexIteration(float* buffer, CTextureFiller::KernelParameters params,CFixedPoint128 xPole,CFixedPoint128 yPole)
 {
 	const int x = blockIdx.x*blockDim.x + threadIdx.x;
 	const int y = blockIdx.y*blockDim.y + threadIdx.y;
@@ -57,6 +57,9 @@ __global__ void kernMandelbrot(float* buffer, CTextureFiller::KernelParameters p
 		if (sumOfSquares.IsNeg())
 			break;
 
+		if (funcIterate(z.x, z.y))
+			break;
+
 		z.y = z.x * z.y;
 		z.y <<= 1;
 
@@ -71,47 +74,53 @@ __global__ void kernMandelbrot(float* buffer, CTextureFiller::KernelParameters p
 	
 }
 
-void CMandelbrotTextureFiller::LaunchKernel(const KernelParameters& params)
+template<Func_Iterate funcIterate>
+void CComplexIterationTextureFiller<funcIterate>::LaunchKernel(const KernelParameters& params)
 {
 	dim3 Db = dim3(8, 8);   // block dimensions are fixed to be 256 threads
 	dim3 Dg = dim3((params.width + Db.x - 1) / Db.x, (params.height + Db.y - 1) / Db.y);
 
-	kernMandelbrot<GetThetaPhiSpherical> <<< Dg, Db >>> (GetBuffer(), params,*m_poleCoords.x,*m_poleCoords.y);
+	kernComplexIteration<GetThetaPhiSpherical> <<< Dg, Db >>> (GetBuffer(), params,*m_poleCoords.x,*m_poleCoords.y);
 }
 
-CMandelbrotTextureFiller::CMandelbrotTextureFiller(int width, int height, float FOV)
+template<Func_Iterate funcIterate>
+CComplexIterationTextureFiller<funcIterate>::CComplexIterationTextureFiller(int width, int height, float FOV)
 	: CTextureFiller(width, height, FOV)
 {
 	m_poleCoords.x = new CFixedPoint128 { 0,0 };
 	m_poleCoords.y = new CFixedPoint128{ 0,0 };
 }
 
-CMandelbrotTextureFiller::~CMandelbrotTextureFiller()
+template<Func_Iterate funcIterate>
+CComplexIterationTextureFiller<funcIterate>::~CComplexIterationTextureFiller()
 {
 	delete m_poleCoords.x;
 	delete m_poleCoords.y;
 }
 
-
-void CMandelbrotTextureFiller::PoleCoordsGet(float& x, float &y)
+template<Func_Iterate funcIterate>
+void CComplexIterationTextureFiller<funcIterate>::PoleCoordsGet(float& x, float &y)
 {
 	x = static_cast<float>(*m_poleCoords.x);
 	y = static_cast<float>(*m_poleCoords.y);
 }
 
-void CMandelbrotTextureFiller::PoleCoordsAdd(float dx, float dy)
+template<Func_Iterate funcIterate>
+void CComplexIterationTextureFiller<funcIterate>::PoleCoordsAdd(float dx, float dy)
 {
 	*m_poleCoords.x += CFixedPoint128(dx);
 	*m_poleCoords.y += CFixedPoint128(dy);
 }
 
-void CMandelbrotTextureFiller::PoleCoordsSet(float x, float y)
+template<Func_Iterate funcIterate>
+void CComplexIterationTextureFiller<funcIterate>::PoleCoordsSet(float x, float y)
 {
 	*m_poleCoords.x = CFixedPoint128(x);
 	*m_poleCoords.y = CFixedPoint128(y);
 }
 
-void CMandelbrotTextureFiller::PoleCoordsZoom(float3 vForward, float rho, float rho_new)
+template<Func_Iterate funcIterate>
+void CComplexIterationTextureFiller<funcIterate>::PoleCoordsZoom(float3 vForward, float rho, float rho_new)
 {
 	float temp = sqrtf(vForward.x * vForward.x + vForward.y * vForward.y);
 	float theta = atan2f(temp, vForward.z);
