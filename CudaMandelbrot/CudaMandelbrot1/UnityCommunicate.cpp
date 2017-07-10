@@ -13,6 +13,7 @@
 
 #include "SimpleFillTexture.h"
 #include "MandelbrotKernel.h"
+#include "BurningShipKernel.h"
 
 #include "UnityCommunicate.h"
 
@@ -32,7 +33,7 @@ ID3D11Device* g_Device=NULL;
 IUnityGraphics* g_Graphics = NULL;
 UnityGfxRenderer g_RendererType = kUnityGfxRendererNull;
 
-CComplexIterationTextureFiller* g_pSimpleFillTexture = nullptr;
+CTextureFiller* g_pSimpleFillTexture = nullptr;
 
 std::map<int, CTextureInfo*> g_mapTextures;
 
@@ -42,7 +43,9 @@ LIBRARY_API void __stdcall Init(bool bDebug,int width,int height,float FOV)
 	//g_pSimpleFillTexture = new SimpleFillTexture(width, height,FOV);
 	if( bDebug)
 		SetEnvironmentVariableA("NSIGHT_CUDA_DEBUGGER", "1");
-	g_pSimpleFillTexture = new CComplexIterationTextureFiller(width, height, FOV);
+	//g_pSimpleFillTexture = CreateMandelbrotTextureFiller(width, height, FOV);
+	g_pSimpleFillTexture = CreateBurningShipTextureFiller(width, height, FOV);
+	//g_pSimpleFillTexture = new SimpleFillTexture(width, height, FOV);
 }
 
 LIBRARY_API void __stdcall Shutdown()

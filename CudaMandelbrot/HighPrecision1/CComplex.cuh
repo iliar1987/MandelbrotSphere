@@ -89,7 +89,7 @@ public:
 };
 
 template<typename Real>
-std::ostream& operator << (std::ostream &o, const CComplex<Real>& C)
+inline std::ostream& operator << (std::ostream &o, const CComplex<Real>& C)
 {
 	o << "{ " << C.x << ", " << C.y << " }";
 	return o;

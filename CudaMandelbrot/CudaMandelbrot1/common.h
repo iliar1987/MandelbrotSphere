@@ -1,6 +1,9 @@
 #pragma once
 
 
+#define OUT
+#define IN
+
 #define ReactToError(sErr)\
 {\
 	char s[512];\

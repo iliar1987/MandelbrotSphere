@@ -1,6 +1,7 @@
 #pragma once
 
 class CTextureInfo;
+class CFixedPoint128;
 
 class CTextureFiller
 {
@@ -51,4 +52,20 @@ public:
 
 	void CTextureFiller::FillTexture(CTextureInfo& tex);
 
+protected:
+	struct TPoleCoords
+	{
+		CFixedPoint128* x = nullptr;
+		CFixedPoint128* y = nullptr;
+	} m_poleCoords;
+
+public:
+
+	void PoleCoordsGet(float& x, float &y);
+
+	void PoleCoordsAdd(float dx, float dy);
+
+	void PoleCoordsSet(float x, float y);
+
+	void PoleCoordsZoom(float3 vCamForward, float rho, float rho_new);
 };

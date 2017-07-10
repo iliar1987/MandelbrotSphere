@@ -92,12 +92,12 @@ public:
 };
 
 
-void output(std::ostream &o, const uint64_t x)
+inline void output(std::ostream &o, const uint64_t x)
 {
 	o << std::setfill('0') << std::setw(16) << std::hex << x;
 }
 
-std::ostream& operator << (std::ostream &o, const CFixedPoint128 &x)
+inline std::ostream& operator << (std::ostream &o, const CFixedPoint128 &x)
 {
 	o << (float)x << " ";
 	o << "{";
