@@ -15,7 +15,7 @@ public class MandelbrotCalc : MonoBehaviour {
 	private static extern void MakeCalculation (float[] vCamRight,float[] vCamUp,float[] vCamForward, float t, float rho,int nIterations);
 
 	[DllImport ("CudaMandelbrot1")]
-	private static extern void Init(bool bDebug, int width, int height, float FOV);
+	private static extern void Init(bool bDebug, int width, int height, float FOV, string fractalName);
 
     [DllImport ("CudaMandelbrot1")]
 	private static extern void Shutdown ();
@@ -66,7 +66,8 @@ public class MandelbrotCalc : MonoBehaviour {
 		m_fRho = m_fRhoInit;
 		m_nIterations = m_nIterationsInit;
 
-		Init(false,width,height,60*Mathf.PI/180);
+//		string fractalNames[] ={"Mandelbrot","BurningShip"};
+		Init(false,width,height,60*Mathf.PI/180,"burningShip");
 		m_tex = new Texture2D (width, height, TextureFormat.RFloat, false, false);
 
 		IntPtr pTexPtr = m_tex.GetNativeTexturePtr ();

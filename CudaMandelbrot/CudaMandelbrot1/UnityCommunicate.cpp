@@ -38,13 +38,15 @@ CTextureFiller* g_pSimpleFillTexture = nullptr;
 std::map<int, CTextureInfo*> g_mapTextures;
 
 
-LIBRARY_API void __stdcall Init(bool bDebug,int width,int height,float FOV)
+LIBRARY_API void __stdcall Init(bool bDebug,int width,int height,float FOV,const char* fractalName)
 {
 	//g_pSimpleFillTexture = new SimpleFillTexture(width, height,FOV);
 	if( bDebug)
 		SetEnvironmentVariableA("NSIGHT_CUDA_DEBUGGER", "1");
-	//g_pSimpleFillTexture = CreateMandelbrotTextureFiller(width, height, FOV);
-	g_pSimpleFillTexture = CreateBurningShipTextureFiller(width, height, FOV);
+	if (strcmpi(fractalName, "mandelbrot") == 0)
+		g_pSimpleFillTexture = CreateMandelbrotTextureFiller(width, height, FOV);
+	else if (strcmpi(fractalName, "burningship") == 0)
+		g_pSimpleFillTexture = CreateBurningShipTextureFiller(width, height, FOV);
 	//g_pSimpleFillTexture = new SimpleFillTexture(width, height, FOV);
 }
 
