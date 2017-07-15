@@ -19,22 +19,16 @@ public:
 		status = cudaMalloc<uint32_t>(&lohi, size);
 		if (status != cudaSuccess)
 		{
-			cudaFree(lolo);
 			return status;
 		}
 		status = cudaMalloc<uint32_t>(&hilo, size);
 		if (status != cudaSuccess)
 		{
-			cudaFree(lolo);
-			cudaFree(lohi);
 			return status;
 		}
 		status = cudaMalloc<uint32_t>(&hihi, size);
 		if (status != cudaSuccess)
 		{
-			cudaFree(lolo);
-			cudaFree(lohi);
-			cudaFree(hilo);
 			return status;
 		}
 		return cudaSuccess;
@@ -110,7 +104,6 @@ public:
 		status = soa_y.Alloc(size);
 		if (status != cudaSuccess)
 		{
-			soa_x.Free();
 			return status;
 		}
 		return cudaSuccess;
@@ -144,5 +137,3 @@ public:
 	}
 
 };
-
-typedef SOA2D<CComplex128_SOA> CComplex128_SOA2d;
