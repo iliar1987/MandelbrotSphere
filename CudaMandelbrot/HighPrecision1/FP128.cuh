@@ -41,14 +41,9 @@ __host__ __device__ inline float Bin32ToFloat(uint32_t ui)
 typedef unsigned long long int uint64_t;
 typedef signed long long int int64_t;
 
-//#define ALL_ONES64 0xffffffffffffffffL
-
 class CFixedPoint128
 {
 public:
-	//static const int s_shiftLeftAfterMul = 3;
-	//static const int s_max = 4;
-	//static const int s_min = -4;
 	static const uint64_t s_allOnes = 0xffffffffffffffffL;
 	union
 	{
