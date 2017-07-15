@@ -23,6 +23,16 @@ public:
 		return *this;
 	}
 
+	__host__ __device__ bool operator == (const CComplex& other)
+	{
+		return x == other.x && y == other.y;
+	}
+
+	__host__ __device__ bool operator != (const CComplex& other)
+	{
+		return !operator == (other);
+	}
+
 	__device__ __host__ CComplex(const Real &rx, const Real &ry) : x(rx), y(ry)
 	{}
 

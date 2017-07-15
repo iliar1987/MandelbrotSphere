@@ -80,6 +80,16 @@ public:
 	__device__ __host__ CFixedPoint128 & operator <<= (const unsigned int n); //in the sense of multiply by power of 2
 	__device__ __host__ CFixedPoint128 & operator >>= (const unsigned int n); //in the sense of divide by power of 2
 
+	__device__ __host__ bool operator == (const CFixedPoint128& other)
+	{
+		return hi == other.hi && lo == other.lo;
+	}
+
+	__device__ __host__ bool operator != (const CFixedPoint128 &other)
+	{
+		return !operator==(other);
+	}
+
 	__device__ inline CFixedPoint128 Sqr();
 
 	__device__ __host__ void Negate(); //switch sign (2's complement)
@@ -116,6 +126,8 @@ public:
 	{}*/
 	using CComplex::CComplex;
 	using CComplex::operator=;
+	using CComplex::operator==;
+	using CComplex::operator!=;
 	//CComplexFP128() : CComplex() {}
 	__device__ __host__ bool OutsideRadius2() const
 	{

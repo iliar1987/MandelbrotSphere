@@ -171,6 +171,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="MandelbrotKernel.h" />
     <ClInclude Include="SimpleFillTexture.h" />
     <ClInclude Include="TextureFiller.h" />
+    <ClInclude Include="TextureFiller2.cuh" />
+    <ClInclude Include="TextureFiller2.h" />
     <ClInclude Include="TextureInfo.h" />
     <ClInclude Include="UnityCommunicate.h" />
     <ClInclude Include="utilities.cuh" />
