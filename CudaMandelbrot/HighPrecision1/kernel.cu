@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "FP128.cuh"
+#include "FP64.cuh"
 
 __global__ void mulKernel(CFixedPoint128 *c, CFixedPoint128 *a, CFixedPoint128 *b)
 {
@@ -152,6 +153,16 @@ void TestFromFloatGPU()
 	//FromFloatKernel <<< dim3()
 }
 
+void TestFP64()
+{
+	std::cout << "fixed point 64 bit test: " << std::endl;
+
+	CFixedPoint64 x(0.1f);
+	CFixedPoint64 y(0.2f);
+
+	std::cout << x << " * " << y << " = " << (x*y) << std::endl;
+}
+
 cudaError_t TestComplex();
 typedef void CudaOp(CFixedPoint128 *c, CFixedPoint128 *a, CFixedPoint128 *b);
 
@@ -159,6 +170,8 @@ cudaError_t PerformOpWithCuda(CudaOp* op, CFixedPoint128 *c, const CFixedPoint12
 
 int main()
 {
+	TestFP64();
+
 	TestFromFloat();
 	TestFromFloatGPU();
 
