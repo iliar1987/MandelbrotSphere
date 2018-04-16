@@ -10,6 +10,7 @@
 
 #include "FP128.cuh"
 #include "FP64.cuh"
+#include "FP32.cuh"
 
 __global__ void mulKernel(CFixedPoint128 *c, CFixedPoint128 *a, CFixedPoint128 *b)
 {
@@ -127,8 +128,6 @@ void TestFromFloatGPU()
 	CFixedPoint128* d_fp128;
 	CFixedPoint128 h_fp128[N];
 
-	cudaError_t cudaStatus;
-
 	HandleErrors(cudaMalloc(&d_arr, N * sizeof(float)));
 	HandleErrors(cudaMemcpy(d_arr, arr, N * sizeof(float), cudaMemcpyKind::cudaMemcpyHostToDevice));
 	HandleErrors(cudaMalloc(&d_fp128, sizeof(CFixedPoint128)*N));
@@ -153,12 +152,12 @@ void TestFromFloatGPU()
 	//FromFloatKernel <<< dim3()
 }
 
-void TestFP64()
-{
-	std::cout << "fixed point 64 bit test: " << std::endl;
 
-	CFixedPoint64 x(0.1f);
-	CFixedPoint64 y(0.2f);
+template<typename FP>
+void TestFPx(float fx,float fy)
+{
+	FP x(fx);
+	FP y(fy);
 
 	std::cout << x << " * " << y << " = " << (x*y) << std::endl;
 }
@@ -170,7 +169,13 @@ cudaError_t PerformOpWithCuda(CudaOp* op, CFixedPoint128 *c, const CFixedPoint12
 
 int main()
 {
-	TestFP64();
+	TestFPx<CFixedPoint32>(0.01f,0.2f);
+	TestFPx<CFixedPoint32>(-0.01f, 0.2f);
+
+	TestFPx<CFixedPoint64>(0.01f, 0.2f);
+	TestFPx<CFixedPoint64>(-0.01f, 0.2f);
+	TestFPx<CFixedPoint64>(1e-5, 2e-6);
+	TestFPx<CFixedPoint64>(-1e-5, 2e-6);
 
 	TestFromFloat();
 	TestFromFloatGPU();

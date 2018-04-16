@@ -13,6 +13,7 @@ template <typename Real>
 class CComplex
 {
 public:
+	typedef Real REAL_TYPE;
 	Real x, y;
 	__device__ __host__ CComplex() {}
 
@@ -23,12 +24,12 @@ public:
 		return *this;
 	}
 
-	__host__ __device__ bool operator == (const CComplex& other)
+	__host__ __device__ bool operator == (const CComplex& other) const
 	{
 		return x == other.x && y == other.y;
 	}
 
-	__host__ __device__ bool operator != (const CComplex& other)
+	__host__ __device__ bool operator != (const CComplex& other) const
 	{
 		return !operator == (other);
 	}

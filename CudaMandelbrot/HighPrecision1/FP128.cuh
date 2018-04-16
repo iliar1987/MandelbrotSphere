@@ -8,38 +8,7 @@
 
 #include "CComplex.cuh"
 
-union UFUI32 { 
-	float f;
-	uint32_t ui; 
-	//UFUI32(uint32_t x) : ui(x) {}
-	//UFUI32(float x) : f(x) {}
-};
-
-__host__ __device__ inline uint32_t FloatToBin32(float f)
-{
-#ifndef __CUDA_ARCH__
-	UFUI32 temp;
-	temp.f = f;
-	return temp.ui;
-#else
-	return __float_as_uint(f);
-#endif
-}
-
-
-__host__ __device__ inline float Bin32ToFloat(uint32_t ui)
-{
-#ifndef __CUDA_ARCH__
-	UFUI32 temp;
-	temp.ui = ui;
-	return temp.f;
-#else
-	return __uint_as_float(ui);
-#endif
-}
-
-typedef unsigned long long int uint64_t;
-typedef signed long long int int64_t;
+#include "CommonHP.cuh"
 
 class CFixedPoint128
 {
@@ -70,17 +39,17 @@ public:
 	//__device__ inline CFixedPoint128 operator * (const CFixedPoint128& other) const; //int128 multiplication with multiplication by 8 afterward (to keep place of point).
 	__device__ inline CFixedPoint128 operator * (CFixedPoint128 &other);
 	__device__ __host__ inline CFixedPoint128 & operator += (const CFixedPoint128 &other);
-	__device__ inline CFixedPoint128 & operator -= (const CFixedPoint128 &other);
+	__device__ __host__ inline CFixedPoint128 & operator -= (const CFixedPoint128 &other);
 
-	__device__ __host__ CFixedPoint128 & operator <<= (const unsigned int n); //in the sense of multiply by power of 2
-	__device__ __host__ CFixedPoint128 & operator >>= (const unsigned int n); //in the sense of divide by power of 2
+	__device__ __host__ CFixedPoint128 & operator <<= (const unsigned char n); //in the sense of multiply by power of 2
+	__device__ __host__ CFixedPoint128 & operator >>= (const unsigned char n); //in the sense of divide by power of 2
 
-	__device__ __host__ bool operator == (const CFixedPoint128& other)
+	__device__ __host__ bool operator == (const CFixedPoint128& other) const
 	{
 		return hi == other.hi && lo == other.lo;
 	}
 
-	__device__ __host__ bool operator != (const CFixedPoint128 &other)
+	__device__ __host__ bool operator != (const CFixedPoint128 &other) const
 	{
 		return !operator==(other);
 	}
@@ -94,6 +63,15 @@ public:
 		return (hihi >> 31) != 0;
 	}
 
+	__device__ __host__ inline void MakeAbs()
+	{
+		if (IsNeg()) Negate();
+	}
+
+	__device__ __host__ inline bool IsOverflown4() const { return IsNeg(); }
+
+	__device__ __host__ inline bool IsAbsLargerThan2() const;
+
 };
 
 
@@ -104,12 +82,15 @@ inline void output(std::ostream &o, const uint64_t x)
 
 inline std::ostream& operator << (std::ostream &o, const CFixedPoint128 &x)
 {
+	std::ios state(0);
+	state.copyfmt(o);
 	o << (float)x << " ";
 	o << "{";
 	output(o, x.lo);
 	o << ", ";
 	output(o, x.hi);
 	o << "}";
+	o.copyfmt(state);
 	return o;
 }
 
@@ -121,9 +102,11 @@ public:
 	{}*/
 	using CComplex::CComplex;
 	using CComplex::operator=;
-	using CComplex::operator==;
-	using CComplex::operator!=;
 	//CComplexFP128() : CComplex() {}
+
+	__host__ __device__ bool operator == (const CComplexFP128& other) const { return CComplex<CFixedPoint128>::operator==(other); }
+	__host__ __device__ bool operator != (const CComplexFP128& other) const { return !operator==(other); }
+
 	__device__ __host__ bool OutsideRadius2() const
 	{
 //		if ( (((x.hihi & 0x80000000) >> 1) ^ (x.hihi & 0x40000000))
@@ -166,7 +149,15 @@ __host__ __device__ inline CFixedPoint128::operator float() const
 #endif
 	if (lz == 128)
 		return 0;
-	x >>= (127 - lz - 23);
+	signed char shift = (127 - lz - 23);
+	if (shift >= 0)
+	{
+		x >>= shift;
+	}
+	else
+	{
+		x <<= -shift;
+	}
 	unsigned char e = (127 - lz + 2);
 
 	uint32_t uiResult = e << 23;
@@ -274,16 +265,21 @@ __device__ __host__ inline CFixedPoint128 & CFixedPoint128::operator += (const C
 	return *this;
 }
 
-__device__ inline CFixedPoint128 & CFixedPoint128::operator -= (const CFixedPoint128 &other)
+__device__ __host__ inline CFixedPoint128 & CFixedPoint128::operator -= (const CFixedPoint128 &other)
 {
+#ifdef __CUDA_ARCH__
 	asm("{\n\t"
 		"sub.cc.u64 %0, %0, %2 ;\n\t"
 		"subc.u64 %1, %1, %3   ;\n\t"
 		"}" : "+l"(lo), "+l"(hi) : "l"(other.lo), "l"(other.hi));
+#else
+	unsigned char c = _subborrow_u64(0, lo, other.lo, &lo);
+	_subborrow_u64(c, hi, other.hi, &hi);
+#endif
 	return *this;
 }
 
-__device__ __host__ inline CFixedPoint128 & CFixedPoint128::operator <<= (const unsigned int n)
+__device__ __host__ inline CFixedPoint128 & CFixedPoint128::operator <<= (const unsigned char n)
 {
 	if (n >= 64)
 	{
@@ -302,7 +298,7 @@ __device__ __host__ inline CFixedPoint128 & CFixedPoint128::operator <<= (const 
 	return *this;
 }
 
-__device__ __host__ inline CFixedPoint128 & CFixedPoint128::operator >>= (const unsigned int n)
+__device__ __host__ inline CFixedPoint128 & CFixedPoint128::operator >>= (const unsigned char n)
 {
 	const bool bNeg = IsNeg();
 	if (n >= 64)
@@ -348,4 +344,9 @@ __device__ __host__ inline void CFixedPoint128::Negate()
 		"addc.u64 %1, %1, 0; \n\t"
 		"}" : "+l"(lo), "+l"(hi));
 #endif
+}
+
+__device__ __host__ bool CFixedPoint128::IsAbsLargerThan2() const
+{
+	return ((hihi & 0x80000000) >> 1) != (hihi & 0x40000000);
 }

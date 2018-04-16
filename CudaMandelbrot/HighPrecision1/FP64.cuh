@@ -22,19 +22,21 @@ public:
 		: m_val64(v64)
 	{}
 
-	__host__ __device__ explicit operator float() const;
-	__host__ __device__ explicit CFixedPoint64(const float d);
+	__host__ __device__ inline explicit operator float() const;
+	__host__ __device__ inline explicit CFixedPoint64(const float d);
 
 	__host__ __device__ inline CFixedPoint64 operator * (const CFixedPoint64 &other);
 
 	__device__ __host__ inline CFixedPoint64 & operator += (const CFixedPoint64 &other)
 	{ 
 		m_val64 += other.m_val64;
+		return *this;
 	}
 
 	__device__ __host__ inline CFixedPoint64 & operator -= (const CFixedPoint64 &other)
 	{
 		m_val64 -= other.m_val64;
+		return *this;
 	};
 
 	__device__ __host__ inline CFixedPoint64 & operator <<= (const unsigned char n) { m_val64 <<= n; return *this; }
@@ -51,9 +53,18 @@ public:
 	}
 
 	__device__ inline CFixedPoint64 Sqr();
+
+	__device__ __host__ inline bool IsNeg() const { return m_val64 < 0; }
+
+	__device__ __host__ inline void MakeAbs() { m_val64 = abs(m_val64); }
+
+	__device__ __host__ inline bool IsAbsLargerThan2() const;
+
+	__device__ __host__ inline bool IsOverflown4() const { return IsNeg(); }
+
 };
 
-CFixedPoint64::operator float() const
+inline CFixedPoint64::operator float() const
 {
 	int64_t x = m_val64;
 	const bool bNeg = x<0;
@@ -87,7 +98,7 @@ CFixedPoint64::operator float() const
 	return Bin32ToFloat(uiResult);
 }
 
-CFixedPoint64::CFixedPoint64(const float d)
+inline CFixedPoint64::CFixedPoint64(const float d)
 {
 	// from wikipedia:
 	// (-1) ** b31  *  ( 1.b22b21b20...b0)_2  *  2 ** ((b30b29...b23)_2 - 127)
@@ -101,7 +112,7 @@ CFixedPoint64::CFixedPoint64(const float d)
 	if (shft > 0)
 		operator <<=(shft);
 	else if (shft < 0)
-		operator >>=(shft);
+		operator >>=(-shft);
 
 	if (s)
 		m_val64 = -m_val64;
@@ -118,13 +129,18 @@ inline __host__ __device__ CFixedPoint64 CFixedPoint64::operator*(const CFixedPo
 #endif
 
 	hi64 <<= 3;
-	hi64 |= (lo64 >> 61);
+	hi64 |= ((uint64_t)lo64) >> 61;
 	return CFixedPoint64(hi64);
 }
 
 inline __device__ CFixedPoint64 CFixedPoint64::Sqr()
 {
 	return (*this)*(*this);
+}
+
+__device__ __host__ bool CFixedPoint64::IsAbsLargerThan2() const
+{
+	return ((m_hi & 0x80000000) >> 1) != (m_hi & 0x40000000);
 }
 
 inline std::ostream& operator << (std::ostream& o, const CFixedPoint64& x)
