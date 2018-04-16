@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CudaMandelbrot2", "..\CudaM
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CudaMandelbrot3", "..\CudaMandelbrot3\CudaMandelbrot3.vcxproj", "{670EC823-F07B-499D-BC1A-61B39A6BE09C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestMandelbrot3c", "..\CudaMandelbrot3\TestMandelbrot3c\TestMandelbrot3c.vcxproj", "{E677614A-8410-4804-98B5-8088EF008FB8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -83,6 +85,16 @@ Global
 		{670EC823-F07B-499D-BC1A-61B39A6BE09C}.Release|x64.Build.0 = Release|x64
 		{670EC823-F07B-499D-BC1A-61B39A6BE09C}.Release|x86.ActiveCfg = Release|Win32
 		{670EC823-F07B-499D-BC1A-61B39A6BE09C}.Release|x86.Build.0 = Release|Win32
+		{E677614A-8410-4804-98B5-8088EF008FB8}.Debug|x64.ActiveCfg = Debug|x64
+		{E677614A-8410-4804-98B5-8088EF008FB8}.Debug|x64.Build.0 = Debug|x64
+		{E677614A-8410-4804-98B5-8088EF008FB8}.Debug|x86.ActiveCfg = Debug|x64
+		{E677614A-8410-4804-98B5-8088EF008FB8}.Profile|x64.ActiveCfg = Release|x64
+		{E677614A-8410-4804-98B5-8088EF008FB8}.Profile|x64.Build.0 = Release|x64
+		{E677614A-8410-4804-98B5-8088EF008FB8}.Profile|x86.ActiveCfg = Release|x64
+		{E677614A-8410-4804-98B5-8088EF008FB8}.Profile|x86.Build.0 = Release|x64
+		{E677614A-8410-4804-98B5-8088EF008FB8}.Release|x64.ActiveCfg = Release|x64
+		{E677614A-8410-4804-98B5-8088EF008FB8}.Release|x64.Build.0 = Release|x64
+		{E677614A-8410-4804-98B5-8088EF008FB8}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
